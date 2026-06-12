@@ -1,31 +1,22 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Badge,
   Button,
-  Card,
-  CardHeader,
   Field,
   FluentProvider,
   Input,
   makeStyles,
+  mergeClasses,
   Select,
-  shorthands,
-  Tab,
-  TabList,
+  Switch,
   Table,
   TableBody,
   TableCell,
   TableHeader,
   TableHeaderCell,
   TableRow,
-  Text,
-  Title2,
-  tokens,
   webDarkTheme,
   webLightTheme,
-  type SelectTabData,
-  type SelectTabEvent,
-  Switch,
 } from '@fluentui/react-components'
 import './App.css'
 import type {
@@ -122,97 +113,357 @@ type AppTab =
 
 type Notice = { type: 'success' | 'error'; message: string } | null
 
+const NAV_GROUPS: { label: string; items: { value: AppTab; label: string }[] }[] = [
+  {
+    label: 'Overview',
+    items: [
+      { value: 'home', label: 'Project List' },
+      { value: 'portfolio', label: 'Portfolio' },
+      { value: 'overview', label: 'Overview' },
+    ],
+  },
+  {
+    label: 'Execution',
+    items: [
+      { value: 'tasks', label: 'Tasks' },
+      { value: 'team', label: 'Team' },
+      { value: 'planning', label: 'Planning' },
+      { value: 'budget', label: 'Budget' },
+    ],
+  },
+  {
+    label: 'Risk & Delivery',
+    items: [
+      { value: 'raid', label: 'RAID Log' },
+      { value: 'deliverables', label: 'Deliverables' },
+      { value: 'time', label: 'Time Entry' },
+    ],
+  },
+  {
+    label: 'Communication',
+    items: [
+      { value: 'communication', label: 'Comms & Feed' },
+      { value: 'documents', label: 'Documents' },
+      { value: 'stakeholders', label: 'Stakeholders' },
+    ],
+  },
+  {
+    label: 'Config',
+    items: [
+      { value: 'settings', label: 'Settings' },
+    ],
+  },
+]
+
+const TAB_LABELS: Record<AppTab, string> = {
+  home: 'Project List',
+  portfolio: 'Portfolio',
+  overview: 'Overview',
+  tasks: 'Tasks',
+  team: 'Team',
+  planning: 'Planning',
+  budget: 'Budget',
+  raid: 'RAID Log',
+  deliverables: 'Deliverables',
+  time: 'Time Entry',
+  communication: 'Comms & Feed',
+  documents: 'Documents',
+  stakeholders: 'Stakeholders',
+  settings: 'Settings',
+}
+
+function StatusPill({ label, color }: { label: string; color: string }) {
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '5px',
+      fontSize: '11px',
+      fontWeight: 500,
+      fontFamily: 'var(--font-mono)',
+      color,
+      background: `${color}18`,
+      border: `1px solid ${color}35`,
+      borderRadius: '4px',
+      padding: '2px 8px',
+      letterSpacing: '0.04em',
+      whiteSpace: 'nowrap',
+    }}>
+      <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: color, flexShrink: 0 }} />
+      {label}
+    </span>
+  )
+}
+
+function statusColor(name: string | undefined): string {
+  const n = (name ?? '').toLowerCase()
+  if (n.includes('complet') || n.includes('done') || n.includes('closed') || n.includes('paid')) return 'var(--c-green)'
+  if (n.includes('progress') || n.includes('review') || n.includes('open') || n.includes('planning')) return 'var(--c-blue)'
+  if (n.includes('hold') || n.includes('pending') || n.includes('medium') || n.includes('monitor')) return 'var(--c-amber)'
+  if (n.includes('cancel') || n.includes('blocked') || n.includes('critical') || n.includes('high') || n.includes('overdue')) return 'var(--c-red)'
+  if (n.includes('mitigat') || n.includes('accept') || n.includes('transfer')) return 'var(--c-purple)'
+  return 'var(--c-text-2)'
+}
+
 const styles = makeStyles({
   root: {
     minHeight: '100vh',
-    backgroundColor: tokens.colorNeutralBackground1,
-    color: tokens.colorNeutralForeground1,
+    fontFamily: 'var(--font-body)',
+    backgroundColor: 'var(--c-bg-0)',
+    color: 'var(--c-text-1)',
   },
   layout: {
     display: 'grid',
-    gridTemplateColumns: '280px 1fr',
-    minHeight: '100vh',
+    gridTemplateColumns: '256px 1fr',
+    height: '100vh',
+    overflow: 'hidden',
   },
   sidebar: {
-    ...shorthands.padding('16px'),
-    ...shorthands.borderRight('1px', 'solid', tokens.colorNeutralStroke2),
+    height: '100vh',
+    overflowY: 'auto',
+    backgroundColor: 'var(--c-bg-1)',
+    borderRight: '1px solid var(--c-border)',
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px',
-    backgroundColor: tokens.colorNeutralBackground2,
+  },
+  sidebarLogo: {
+    padding: '22px 20px 16px',
+    borderBottom: '1px solid var(--c-border)',
+    flexShrink: 0,
+  },
+  logoText: {
+    display: 'block',
+    fontFamily: 'var(--font-serif)',
+    fontStyle: 'italic',
+    fontSize: '20px',
+    color: 'var(--c-text-1)',
+    lineHeight: 1.2,
+  },
+  logoSub: {
+    display: 'block',
+    marginTop: '5px',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '9px',
+    letterSpacing: '0.2em',
+    color: 'var(--c-accent)',
+    textTransform: 'uppercase',
+  },
+  sidebarBody: {
+    flex: 1,
+    overflowY: 'auto',
+    paddingTop: '6px',
+    paddingBottom: '6px',
+  },
+  sidebarSection: {
+    padding: '8px 12px 4px',
+  },
+  sidebarSectionLabel: {
+    display: 'block',
+    fontSize: '9px',
+    fontFamily: 'var(--font-mono)',
+    letterSpacing: '0.15em',
+    textTransform: 'uppercase',
+    color: 'var(--c-text-3)',
+    padding: '0 8px 5px',
+  },
+  navBtn: {
+    display: 'block',
+    width: '100%',
+    padding: '7px 10px',
+    marginBottom: '1px',
+    border: 'none',
+    borderRadius: '6px',
+    backgroundColor: 'transparent',
+    color: 'var(--c-text-2)',
+    fontSize: '13px',
+    fontFamily: 'var(--font-body)',
+    fontWeight: 400,
+    cursor: 'pointer',
+    textAlign: 'left',
+    ':hover': {
+      backgroundColor: 'var(--c-bg-3)',
+      color: 'var(--c-text-1)',
+    },
+  },
+  navBtnActive: {
+    backgroundColor: 'var(--c-accent-dim)',
+    color: 'var(--c-accent)',
+    fontWeight: 500,
+    ':hover': {
+      backgroundColor: 'var(--c-accent-dim)',
+      color: 'var(--c-accent)',
+    },
+  },
+  projBtn: {
+    display: 'block',
+    width: '100%',
+    padding: '5px 10px',
+    marginBottom: '1px',
+    border: 'none',
+    borderRadius: '5px',
+    backgroundColor: 'transparent',
+    color: 'var(--c-text-2)',
+    fontSize: '12px',
+    fontFamily: 'var(--font-body)',
+    cursor: 'pointer',
+    textAlign: 'left',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    ':hover': {
+      backgroundColor: 'var(--c-bg-3)',
+      color: 'var(--c-text-1)',
+    },
+  },
+  projBtnActive: {
+    backgroundColor: 'var(--c-accent-dim)',
+    color: 'var(--c-accent)',
+    ':hover': {
+      backgroundColor: 'var(--c-accent-dim)',
+      color: 'var(--c-accent)',
+    },
+  },
+  sidebarFooter: {
+    padding: '12px 14px',
+    borderTop: '1px solid var(--c-border)',
+    flexShrink: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
   },
   content: {
-    ...shorthands.padding('20px'),
+    height: '100vh',
+    overflowY: 'auto',
+    padding: '24px 28px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '16px',
+    gap: '18px',
   },
-  topBar: {
+  pageHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  pageTitle: {
+    fontSize: '20px',
+    fontWeight: 600,
+    color: 'var(--c-text-1)',
+    letterSpacing: '-0.02em',
+    lineHeight: 1.2,
+    margin: 0,
+  },
+  pageCtx: {
+    fontSize: '11px',
+    color: 'var(--c-text-2)',
+    fontFamily: 'var(--font-mono)',
+    marginTop: '3px',
+  },
+  notice: {
+    padding: '9px 14px',
+    borderRadius: '6px',
+    fontSize: '13px',
+  },
+  noticeSuccess: {
+    backgroundColor: 'rgba(34,197,94,0.08)',
+    border: '1px solid rgba(34,197,94,0.22)',
+    color: 'var(--c-green)',
+  },
+  noticeError: {
+    backgroundColor: 'rgba(244,63,94,0.08)',
+    border: '1px solid rgba(244,63,94,0.22)',
+    color: 'var(--c-red)',
+  },
+  kpiGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '14px',
+  },
+  kpiCard: {
+    position: 'relative',
+    padding: '18px 18px 18px 22px',
+    backgroundColor: 'var(--c-bg-2)',
+    border: '1px solid var(--c-border)',
+    borderRadius: '8px',
+    overflow: 'hidden',
+  },
+  kpiStripe: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: '3px',
+  },
+  kpiLabel: {
+    display: 'block',
+    fontSize: '10px',
+    fontFamily: 'var(--font-mono)',
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    color: 'var(--c-text-2)',
+    marginBottom: '8px',
+  },
+  kpiValue: {
+    display: 'block',
+    fontSize: '28px',
+    fontWeight: 700,
+    fontFamily: 'var(--font-mono)',
+    color: 'var(--c-text-1)',
+    lineHeight: 1,
+  },
+  panel: {
+    backgroundColor: 'var(--c-bg-2)',
+    border: '1px solid var(--c-border)',
+    borderRadius: '8px',
+    overflow: 'hidden',
+  },
+  panelHead: {
+    padding: '13px 18px',
+    borderBottom: '1px solid var(--c-border)',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: '12px',
   },
-  sectionGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-    gap: '12px',
+  panelTitle: {
+    fontSize: '13px',
+    fontWeight: 600,
+    color: 'var(--c-text-1)',
+    letterSpacing: '-0.01em',
   },
-  card: {
-    ...shorthands.padding('14px'),
-  },
-  tabList: {
-    rowGap: '6px',
-  },
-  projectList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-    maxHeight: '280px',
-    overflowY: 'auto',
-  },
-  selectedProject: {
-    ...shorthands.border('1px', 'solid', tokens.colorBrandStroke1),
-  },
-  tableCard: {
-    ...shorthands.padding('14px'),
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  tableScroll: {
+  tableWrap: {
     overflowX: 'auto',
   },
-  rowClickable: {
-    cursor: 'pointer',
-  },
-  formGrid: {
+  formZone: {
+    padding: '14px 18px',
+    borderTop: '1px solid var(--c-border)',
+    backgroundColor: 'var(--c-bg-1)',
     display: 'grid',
     gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
     gap: '10px',
   },
   formActions: {
+    padding: '10px 18px',
+    borderTop: '1px solid var(--c-border)',
+    backgroundColor: 'var(--c-bg-1)',
     display: 'flex',
-    gap: '10px',
+    gap: '8px',
     alignItems: 'center',
   },
-  notice: {
-    ...shorthands.padding('8px', '12px'),
-    ...shorthands.borderRadius(tokens.borderRadiusMedium),
-    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
-  },
-  success: {
-    backgroundColor: tokens.colorPaletteGreenBackground1,
-    color: tokens.colorPaletteGreenForeground1,
-  },
-  error: {
-    backgroundColor: tokens.colorPaletteRedBackground1,
-    color: tokens.colorPaletteRedForeground1,
-  },
-  twoColumn: {
+  twoCol: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
-    gap: '12px',
+    gap: '16px',
+  },
+  colStack: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '18px',
+  },
+  rowClickable: {
+    cursor: 'pointer',
+  },
+  monoCell: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: '12px',
   },
 })
 
@@ -229,7 +480,7 @@ function parseNumber(value: string): number | undefined {
 function App() {
   const s = styles()
 
-  const [darkMode, setDarkMode] = useState(false)
+  const [darkMode, setDarkMode] = useState(true)
   const [activeTab, setActiveTab] = useState<AppTab>('home')
   const [notice, setNotice] = useState<Notice>(null)
   const [loading, setLoading] = useState(false)
@@ -401,6 +652,9 @@ function App() {
   }).length
   const budgetTotal = projects.reduce((sum, p) => sum + (p.vibe_totalbudget ?? 0), 0)
   const budgetSpent = projects.reduce((sum, p) => sum + (p.vibe_budgetspent ?? 0), 0)
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadData() }, [])
 
   async function execute(action: () => Promise<void>, successMessage: string) {
     setNotice(null)
@@ -642,65 +896,36 @@ function App() {
   function resetProjectForm() {
     setProjectForm({ id: '', name: '', startDate: '', endDate: '', totalBudget: '', templateId: '' })
   }
-
   function resetTaskForm() {
     setTaskForm({ id: '', name: '', projectId: selectedProjectId, dueDate: '', priority: '100000001', status: '100000000' })
   }
-
   function resetTeamForm() {
-    setTeamForm({
-      id: '',
-      name: '',
-      projectId: selectedProjectId,
-      roleId: '',
-      allocation: '100',
-      hourlyRate: '',
-      startDate: '',
-      endDate: '',
-      isActive: true,
-    })
+    setTeamForm({ id: '', name: '', projectId: selectedProjectId, roleId: '', allocation: '100', hourlyRate: '', startDate: '', endDate: '', isActive: true })
   }
-
   function resetBudgetForm() {
     setBudgetForm({ id: '', name: '', projectId: selectedProjectId, estimated: '', actual: '', category: '100000005' })
   }
-
   function resetRiskForm() {
     setRiskForm({ id: '', title: '', projectId: selectedProjectId, probability: '100000002', impact: '100000002', status: '100000000' })
   }
-
   function resetIssueForm() {
     setIssueForm({ id: '', title: '', projectId: selectedProjectId, severity: '100000001', status: '100000000' })
   }
-
   function resetDeliverableForm() {
-    setDeliverableForm({
-      id: '',
-      name: '',
-      projectId: selectedProjectId,
-      dueDate: '',
-      status: '100000000',
-      documentLink: '',
-      responsibleId: '',
-    })
+    setDeliverableForm({ id: '', name: '', projectId: selectedProjectId, dueDate: '', status: '100000000', documentLink: '', responsibleId: '' })
   }
-
   function resetTimeForm() {
     setTimeForm({ id: '', name: '', projectId: selectedProjectId, taskId: '', teamMemberId: '', date: '', hours: '' })
   }
-
   function resetDecisionForm() {
     setDecisionForm({ id: '', title: '', projectId: selectedProjectId, madeById: '', date: '' })
   }
-
   function resetMeetingForm() {
     setMeetingForm({ id: '', title: '', projectId: selectedProjectId, date: '' })
   }
-
   function resetRoleForm() {
     setRoleForm({ id: '', name: '', defaultRate: '', isStakeholder: false })
   }
-
   function resetTemplateForm() {
     setTemplateForm({ id: '', name: '', isActive: true })
   }
@@ -714,22 +939,16 @@ function App() {
       'vibe_templatesourceid@odata.bind': projectForm.templateId ? bind('vibe_projecttemplates', projectForm.templateId) : undefined,
     }
     if (projectForm.id) {
-      await execute(async () => {
-        await Vibe_projectsService.update(projectForm.id, payload)
-      }, 'Project updated.')
+      await execute(async () => { await Vibe_projectsService.update(projectForm.id, payload) }, 'Project updated.')
     } else {
-      await execute(async () => {
-        await Vibe_projectsService.create(asCreatePayload<Omit<Vibe_projectsBase, 'vibe_projectid'>>(payload))
-      }, 'Project created.')
+      await execute(async () => { await Vibe_projectsService.create(asCreatePayload<Omit<Vibe_projectsBase, 'vibe_projectid'>>(payload)) }, 'Project created.')
     }
     resetProjectForm()
   }
 
   async function deleteProject() {
     if (!projectForm.id) return
-    await execute(async () => {
-      await Vibe_projectsService.delete(projectForm.id)
-    }, 'Project deleted.')
+    await execute(async () => { await Vibe_projectsService.delete(projectForm.id) }, 'Project deleted.')
     resetProjectForm()
   }
 
@@ -742,22 +961,16 @@ function App() {
       'vibe_projectid@odata.bind': taskForm.projectId ? bind('vibe_projects', taskForm.projectId) : undefined,
     }
     if (taskForm.id) {
-      await execute(async () => {
-        await Vibe_tasksService.update(taskForm.id, payload)
-      }, 'Task updated.')
+      await execute(async () => { await Vibe_tasksService.update(taskForm.id, payload) }, 'Task updated.')
     } else {
-      await execute(async () => {
-        await Vibe_tasksService.create(asCreatePayload<Omit<Vibe_tasksBase, 'vibe_taskid'>>(payload))
-      }, 'Task created.')
+      await execute(async () => { await Vibe_tasksService.create(asCreatePayload<Omit<Vibe_tasksBase, 'vibe_taskid'>>(payload)) }, 'Task created.')
     }
     resetTaskForm()
   }
 
   async function deleteTask() {
     if (!taskForm.id) return
-    await execute(async () => {
-      await Vibe_tasksService.delete(taskForm.id)
-    }, 'Task deleted.')
+    await execute(async () => { await Vibe_tasksService.delete(taskForm.id) }, 'Task deleted.')
     resetTaskForm()
   }
 
@@ -773,22 +986,16 @@ function App() {
       'vibe_roleid@odata.bind': teamForm.roleId ? bind('vibe_projectroles', teamForm.roleId) : undefined,
     }
     if (teamForm.id) {
-      await execute(async () => {
-        await Vibe_projectteammembersService.update(teamForm.id, payload)
-      }, 'Team member updated.')
+      await execute(async () => { await Vibe_projectteammembersService.update(teamForm.id, payload) }, 'Team member updated.')
     } else {
-      await execute(async () => {
-        await Vibe_projectteammembersService.create(asCreatePayload<Omit<Vibe_projectteammembersBase, 'vibe_projectteammemberid'>>(payload))
-      }, 'Team member created.')
+      await execute(async () => { await Vibe_projectteammembersService.create(asCreatePayload<Omit<Vibe_projectteammembersBase, 'vibe_projectteammemberid'>>(payload)) }, 'Team member created.')
     }
     resetTeamForm()
   }
 
   async function deleteTeam() {
     if (!teamForm.id) return
-    await execute(async () => {
-      await Vibe_projectteammembersService.delete(teamForm.id)
-    }, 'Team member deleted.')
+    await execute(async () => { await Vibe_projectteammembersService.delete(teamForm.id) }, 'Team member deleted.')
     resetTeamForm()
   }
 
@@ -801,22 +1008,16 @@ function App() {
       'vibe_projectid@odata.bind': budgetForm.projectId ? bind('vibe_projects', budgetForm.projectId) : undefined,
     }
     if (budgetForm.id) {
-      await execute(async () => {
-        await Vibe_budgetlinesService.update(budgetForm.id, payload)
-      }, 'Budget line updated.')
+      await execute(async () => { await Vibe_budgetlinesService.update(budgetForm.id, payload) }, 'Budget line updated.')
     } else {
-      await execute(async () => {
-        await Vibe_budgetlinesService.create(asCreatePayload<Omit<Vibe_budgetlinesBase, 'vibe_budgetlineid'>>(payload))
-      }, 'Budget line created.')
+      await execute(async () => { await Vibe_budgetlinesService.create(asCreatePayload<Omit<Vibe_budgetlinesBase, 'vibe_budgetlineid'>>(payload)) }, 'Budget line created.')
     }
     resetBudgetForm()
   }
 
   async function deleteBudget() {
     if (!budgetForm.id) return
-    await execute(async () => {
-      await Vibe_budgetlinesService.delete(budgetForm.id)
-    }, 'Budget line deleted.')
+    await execute(async () => { await Vibe_budgetlinesService.delete(budgetForm.id) }, 'Budget line deleted.')
     resetBudgetForm()
   }
 
@@ -829,22 +1030,16 @@ function App() {
       'vibe_projectid@odata.bind': riskForm.projectId ? bind('vibe_projects', riskForm.projectId) : undefined,
     }
     if (riskForm.id) {
-      await execute(async () => {
-        await Vibe_risksService.update(riskForm.id, payload)
-      }, 'Risk updated.')
+      await execute(async () => { await Vibe_risksService.update(riskForm.id, payload) }, 'Risk updated.')
     } else {
-      await execute(async () => {
-        await Vibe_risksService.create(asCreatePayload<Omit<Vibe_risksBase, 'vibe_riskid'>>(payload))
-      }, 'Risk created.')
+      await execute(async () => { await Vibe_risksService.create(asCreatePayload<Omit<Vibe_risksBase, 'vibe_riskid'>>(payload)) }, 'Risk created.')
     }
     resetRiskForm()
   }
 
   async function deleteRisk() {
     if (!riskForm.id) return
-    await execute(async () => {
-      await Vibe_risksService.delete(riskForm.id)
-    }, 'Risk deleted.')
+    await execute(async () => { await Vibe_risksService.delete(riskForm.id) }, 'Risk deleted.')
     resetRiskForm()
   }
 
@@ -856,22 +1051,16 @@ function App() {
       'vibe_projectid@odata.bind': issueForm.projectId ? bind('vibe_projects', issueForm.projectId) : undefined,
     }
     if (issueForm.id) {
-      await execute(async () => {
-        await Vibe_issuesService.update(issueForm.id, payload)
-      }, 'Issue updated.')
+      await execute(async () => { await Vibe_issuesService.update(issueForm.id, payload) }, 'Issue updated.')
     } else {
-      await execute(async () => {
-        await Vibe_issuesService.create(asCreatePayload<Omit<Vibe_issuesBase, 'vibe_issueid'>>(payload))
-      }, 'Issue created.')
+      await execute(async () => { await Vibe_issuesService.create(asCreatePayload<Omit<Vibe_issuesBase, 'vibe_issueid'>>(payload)) }, 'Issue created.')
     }
     resetIssueForm()
   }
 
   async function deleteIssue() {
     if (!issueForm.id) return
-    await execute(async () => {
-      await Vibe_issuesService.delete(issueForm.id)
-    }, 'Issue deleted.')
+    await execute(async () => { await Vibe_issuesService.delete(issueForm.id) }, 'Issue deleted.')
     resetIssueForm()
   }
 
@@ -885,22 +1074,16 @@ function App() {
       'vibe_responsibleid@odata.bind': deliverableForm.responsibleId ? bind('vibe_projectteammembers', deliverableForm.responsibleId) : undefined,
     }
     if (deliverableForm.id) {
-      await execute(async () => {
-        await Vibe_deliverablesService.update(deliverableForm.id, payload)
-      }, 'Deliverable updated.')
+      await execute(async () => { await Vibe_deliverablesService.update(deliverableForm.id, payload) }, 'Deliverable updated.')
     } else {
-      await execute(async () => {
-        await Vibe_deliverablesService.create(asCreatePayload<Omit<Vibe_deliverablesBase, 'vibe_deliverableid'>>(payload))
-      }, 'Deliverable created.')
+      await execute(async () => { await Vibe_deliverablesService.create(asCreatePayload<Omit<Vibe_deliverablesBase, 'vibe_deliverableid'>>(payload)) }, 'Deliverable created.')
     }
     resetDeliverableForm()
   }
 
   async function deleteDeliverable() {
     if (!deliverableForm.id) return
-    await execute(async () => {
-      await Vibe_deliverablesService.delete(deliverableForm.id)
-    }, 'Deliverable deleted.')
+    await execute(async () => { await Vibe_deliverablesService.delete(deliverableForm.id) }, 'Deliverable deleted.')
     resetDeliverableForm()
   }
 
@@ -914,22 +1097,16 @@ function App() {
       'vibe_teammemberid@odata.bind': timeForm.teamMemberId ? bind('vibe_projectteammembers', timeForm.teamMemberId) : undefined,
     }
     if (timeForm.id) {
-      await execute(async () => {
-        await Vibe_timeentriesService.update(timeForm.id, payload)
-      }, 'Time entry updated.')
+      await execute(async () => { await Vibe_timeentriesService.update(timeForm.id, payload) }, 'Time entry updated.')
     } else {
-      await execute(async () => {
-        await Vibe_timeentriesService.create(asCreatePayload<Omit<Vibe_timeentriesBase, 'vibe_timeentryid'>>(payload))
-      }, 'Time entry created.')
+      await execute(async () => { await Vibe_timeentriesService.create(asCreatePayload<Omit<Vibe_timeentriesBase, 'vibe_timeentryid'>>(payload)) }, 'Time entry created.')
     }
     resetTimeForm()
   }
 
   async function deleteTime() {
     if (!timeForm.id) return
-    await execute(async () => {
-      await Vibe_timeentriesService.delete(timeForm.id)
-    }, 'Time entry deleted.')
+    await execute(async () => { await Vibe_timeentriesService.delete(timeForm.id) }, 'Time entry deleted.')
     resetTimeForm()
   }
 
@@ -941,22 +1118,16 @@ function App() {
       'vibe_madebyid@odata.bind': decisionForm.madeById ? bind('vibe_projectteammembers', decisionForm.madeById) : undefined,
     }
     if (decisionForm.id) {
-      await execute(async () => {
-        await Vibe_decisionlogsService.update(decisionForm.id, payload)
-      }, 'Decision updated.')
+      await execute(async () => { await Vibe_decisionlogsService.update(decisionForm.id, payload) }, 'Decision updated.')
     } else {
-      await execute(async () => {
-        await Vibe_decisionlogsService.create(asCreatePayload<Omit<Vibe_decisionlogsBase, 'vibe_decisionlogid'>>(payload))
-      }, 'Decision created.')
+      await execute(async () => { await Vibe_decisionlogsService.create(asCreatePayload<Omit<Vibe_decisionlogsBase, 'vibe_decisionlogid'>>(payload)) }, 'Decision created.')
     }
     resetDecisionForm()
   }
 
   async function deleteDecision() {
     if (!decisionForm.id) return
-    await execute(async () => {
-      await Vibe_decisionlogsService.delete(decisionForm.id)
-    }, 'Decision deleted.')
+    await execute(async () => { await Vibe_decisionlogsService.delete(decisionForm.id) }, 'Decision deleted.')
     resetDecisionForm()
   }
 
@@ -967,22 +1138,16 @@ function App() {
       'vibe_projectid@odata.bind': meetingForm.projectId ? bind('vibe_projects', meetingForm.projectId) : undefined,
     }
     if (meetingForm.id) {
-      await execute(async () => {
-        await Vibe_meetingnotesService.update(meetingForm.id, payload)
-      }, 'Meeting note updated.')
+      await execute(async () => { await Vibe_meetingnotesService.update(meetingForm.id, payload) }, 'Meeting note updated.')
     } else {
-      await execute(async () => {
-        await Vibe_meetingnotesService.create(asCreatePayload<Omit<Vibe_meetingnotesBase, 'vibe_meetingnoteid'>>(payload))
-      }, 'Meeting note created.')
+      await execute(async () => { await Vibe_meetingnotesService.create(asCreatePayload<Omit<Vibe_meetingnotesBase, 'vibe_meetingnoteid'>>(payload)) }, 'Meeting note created.')
     }
     resetMeetingForm()
   }
 
   async function deleteMeeting() {
     if (!meetingForm.id) return
-    await execute(async () => {
-      await Vibe_meetingnotesService.delete(meetingForm.id)
-    }, 'Meeting note deleted.')
+    await execute(async () => { await Vibe_meetingnotesService.delete(meetingForm.id) }, 'Meeting note deleted.')
     resetMeetingForm()
   }
 
@@ -993,22 +1158,16 @@ function App() {
       vibe_isstakeholderrole: roleForm.isStakeholder,
     }
     if (roleForm.id) {
-      await execute(async () => {
-        await Vibe_projectrolesService.update(roleForm.id, payload)
-      }, 'Role updated.')
+      await execute(async () => { await Vibe_projectrolesService.update(roleForm.id, payload) }, 'Role updated.')
     } else {
-      await execute(async () => {
-        await Vibe_projectrolesService.create(asCreatePayload<Omit<Vibe_projectrolesBase, 'vibe_projectroleid'>>(payload))
-      }, 'Role created.')
+      await execute(async () => { await Vibe_projectrolesService.create(asCreatePayload<Omit<Vibe_projectrolesBase, 'vibe_projectroleid'>>(payload)) }, 'Role created.')
     }
     resetRoleForm()
   }
 
   async function deleteRole() {
     if (!roleForm.id) return
-    await execute(async () => {
-      await Vibe_projectrolesService.delete(roleForm.id)
-    }, 'Role deleted.')
+    await execute(async () => { await Vibe_projectrolesService.delete(roleForm.id) }, 'Role deleted.')
     resetRoleForm()
   }
 
@@ -1018,40 +1177,36 @@ function App() {
       vibe_isactive: templateForm.isActive,
     }
     if (templateForm.id) {
-      await execute(async () => {
-        await Vibe_projecttemplatesService.update(templateForm.id, payload)
-      }, 'Template updated.')
+      await execute(async () => { await Vibe_projecttemplatesService.update(templateForm.id, payload) }, 'Template updated.')
     } else {
-      await execute(async () => {
-        await Vibe_projecttemplatesService.create(asCreatePayload<Omit<Vibe_projecttemplatesBase, 'vibe_projecttemplateid'>>(payload))
-      }, 'Template created.')
+      await execute(async () => { await Vibe_projecttemplatesService.create(asCreatePayload<Omit<Vibe_projecttemplatesBase, 'vibe_projecttemplateid'>>(payload)) }, 'Template created.')
     }
     resetTemplateForm()
   }
 
   async function deleteTemplate() {
     if (!templateForm.id) return
-    await execute(async () => {
-      await Vibe_projecttemplatesService.delete(templateForm.id)
-    }, 'Template deleted.')
+    await execute(async () => { await Vibe_projecttemplatesService.delete(templateForm.id) }, 'Template deleted.')
     resetTemplateForm()
-  }
-
-  const onTabSelect = (_event: SelectTabEvent, data: SelectTabData) => {
-    setActiveTab(data.value as AppTab)
   }
 
   const theme = darkMode ? webDarkTheme : webLightTheme
 
   const renderHome = () => (
-    <Card className={s.tableCard}>
-      <CardHeader header={<Text weight="semibold">Project List (CRUD)</Text>} />
-      <div className={s.tableScroll}>
+    <div className={s.panel}>
+      <div className={s.panelHead}>
+        <span className={s.panelTitle}>Projects</span>
+        <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>
+          {projects.length} total
+        </span>
+      </div>
+      <div className={s.tableWrap}>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHeaderCell>Name</TableHeaderCell>
-              <TableHeaderCell>Date Range</TableHeaderCell>
+              <TableHeaderCell>Start</TableHeaderCell>
+              <TableHeaderCell>End</TableHeaderCell>
               <TableHeaderCell>Status</TableHeaderCell>
               <TableHeaderCell>Budget</TableHeaderCell>
             </TableRow>
@@ -1074,19 +1229,23 @@ function App() {
                 }}
               >
                 <TableCell>{project.vibe_name}</TableCell>
-                <TableCell>{project.vibe_startdate?.slice(0, 10)} - {project.vibe_enddate?.slice(0, 10)}</TableCell>
+                <TableCell className={s.monoCell}>{project.vibe_startdate?.slice(0, 10) ?? '—'}</TableCell>
+                <TableCell className={s.monoCell}>{project.vibe_enddate?.slice(0, 10) ?? '—'}</TableCell>
                 <TableCell>
-                  <Badge appearance="filled" color={project.statecode === 0 ? 'success' : 'informative'}>
-                    {project.statecode === 0 ? 'Active' : 'Inactive'}
-                  </Badge>
+                  <StatusPill
+                    label={project.statecode === 0 ? 'Active' : 'Inactive'}
+                    color={project.statecode === 0 ? 'var(--c-green)' : 'var(--c-text-2)'}
+                  />
                 </TableCell>
-                <TableCell>{project.vibe_totalbudget ?? 0}</TableCell>
+                <TableCell className={s.monoCell}>
+                  {project.vibe_totalbudget != null ? project.vibe_totalbudget.toLocaleString() : '—'}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-      <div className={s.formGrid}>
+      <div className={s.formZone}>
         <Field label="Name"><Input value={projectForm.name} onChange={(_, d) => setProjectForm((p) => ({ ...p, name: d.value }))} /></Field>
         <Field label="Start date"><Input type="date" value={projectForm.startDate} onChange={(_, d) => setProjectForm((p) => ({ ...p, startDate: d.value }))} /></Field>
         <Field label="End date"><Input type="date" value={projectForm.endDate} onChange={(_, d) => setProjectForm((p) => ({ ...p, endDate: d.value }))} /></Field>
@@ -1105,35 +1264,81 @@ function App() {
         <Button appearance="secondary" onClick={resetProjectForm}>Clear</Button>
         <Button appearance="outline" disabled={!projectForm.id} onClick={deleteProject}>Delete</Button>
       </div>
-    </Card>
-  )
-
-  const renderPortfolio = () => (
-    <div className={s.sectionGrid}>
-      <Card className={s.card}><Text>Active Projects</Text><Title2>{activeProjects}</Title2></Card>
-      <Card className={s.card}><Text>Overdue Tasks</Text><Title2>{overdueTasks}</Title2></Card>
-      <Card className={s.card}><Text>Open Risks</Text><Title2>{openRisks}</Title2></Card>
-      <Card className={s.card}><Text>Budget Burn</Text><Title2>{budgetTotal ? Math.round((budgetSpent / budgetTotal) * 100) : 0}%</Title2></Card>
     </div>
   )
 
-  const renderOverview = () => (
-    <Card className={s.tableCard}>
-      <CardHeader header={<Text weight="semibold">Overview — {currentProjectName}</Text>} />
-      <Text>Budget Total: {budgetTotal}</Text>
-      <Text>Budget Spent: {budgetSpent}</Text>
-      <Text>Tasks: {filteredTasks.length}</Text>
-      <Text>Team Members: {filteredTeam.length}</Text>
-    </Card>
+  const renderPortfolio = () => (
+    <div className={s.kpiGrid}>
+      <div className={s.kpiCard}>
+        <div className={s.kpiStripe} style={{ background: 'var(--c-blue)' }} />
+        <span className={s.kpiLabel}>Active Projects</span>
+        <span className={s.kpiValue}>{activeProjects}</span>
+      </div>
+      <div className={s.kpiCard}>
+        <div className={s.kpiStripe} style={{ background: 'var(--c-red)' }} />
+        <span className={s.kpiLabel}>Overdue Tasks</span>
+        <span className={s.kpiValue}>{overdueTasks}</span>
+      </div>
+      <div className={s.kpiCard}>
+        <div className={s.kpiStripe} style={{ background: 'var(--c-amber)' }} />
+        <span className={s.kpiLabel}>Open Risks</span>
+        <span className={s.kpiValue}>{openRisks}</span>
+      </div>
+      <div className={s.kpiCard}>
+        <div className={s.kpiStripe} style={{ background: 'var(--c-accent)' }} />
+        <span className={s.kpiLabel}>Budget Burn</span>
+        <span className={s.kpiValue}>{budgetTotal ? Math.round((budgetSpent / budgetTotal) * 100) : 0}%</span>
+      </div>
+    </div>
   )
 
+  const renderOverview = () => {
+    const totalHours = filteredTime.reduce((sum, t) => sum + (t.vibe_hours ?? 0), 0)
+    const budgetPct = budgetTotal ? Math.round((budgetSpent / budgetTotal) * 100) : 0
+    return (
+      <div className={s.kpiGrid}>
+        <div className={s.kpiCard}>
+          <div className={s.kpiStripe} style={{ background: 'var(--c-blue)' }} />
+          <span className={s.kpiLabel}>Tasks</span>
+          <span className={s.kpiValue}>{filteredTasks.length}</span>
+        </div>
+        <div className={s.kpiCard}>
+          <div className={s.kpiStripe} style={{ background: 'var(--c-green)' }} />
+          <span className={s.kpiLabel}>Team Members</span>
+          <span className={s.kpiValue}>{filteredTeam.length}</span>
+        </div>
+        <div className={s.kpiCard}>
+          <div className={s.kpiStripe} style={{ background: 'var(--c-accent)' }} />
+          <span className={s.kpiLabel}>Budget Burn</span>
+          <span className={s.kpiValue}>{budgetPct}%</span>
+        </div>
+        <div className={s.kpiCard}>
+          <div className={s.kpiStripe} style={{ background: 'var(--c-purple)' }} />
+          <span className={s.kpiLabel}>Hours Logged</span>
+          <span className={s.kpiValue}>{totalHours.toFixed(0)}</span>
+        </div>
+      </div>
+    )
+  }
+
   const renderTasks = () => (
-    <Card className={s.tableCard}>
-      <CardHeader header={<Text weight="semibold">Tasks (CRUD)</Text>} />
-      <div className={s.tableScroll}>
+    <div className={s.panel}>
+      <div className={s.panelHead}>
+        <span className={s.panelTitle}>Tasks</span>
+        <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>
+          {filteredTasks.length} items
+        </span>
+      </div>
+      <div className={s.tableWrap}>
         <Table>
           <TableHeader>
-            <TableRow><TableHeaderCell>Name</TableHeaderCell><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>Status</TableHeaderCell><TableHeaderCell>Priority</TableHeaderCell><TableHeaderCell>Due</TableHeaderCell></TableRow>
+            <TableRow>
+              <TableHeaderCell>Name</TableHeaderCell>
+              <TableHeaderCell>Project</TableHeaderCell>
+              <TableHeaderCell>Status</TableHeaderCell>
+              <TableHeaderCell>Priority</TableHeaderCell>
+              <TableHeaderCell>Due</TableHeaderCell>
+            </TableRow>
           </TableHeader>
           <TableBody>
             {filteredTasks.map((task) => (
@@ -1146,19 +1351,19 @@ function App() {
                 status: `${task.vibe_taskstatus ?? 100000000}`,
               })}>
                 <TableCell>{task.vibe_name}</TableCell>
-                <TableCell>{task._vibe_projectid_value ? (projectById[task._vibe_projectid_value] ?? task._vibe_projectid_value) : '-'}</TableCell>
-                <TableCell>{task.vibe_taskstatusname}</TableCell>
-                <TableCell>{task.vibe_priorityname}</TableCell>
-                <TableCell>{task.vibe_duedate?.slice(0, 10)}</TableCell>
+                <TableCell>{task._vibe_projectid_value ? (projectById[task._vibe_projectid_value] ?? '—') : '—'}</TableCell>
+                <TableCell><StatusPill label={task.vibe_taskstatusname ?? '—'} color={statusColor(task.vibe_taskstatusname)} /></TableCell>
+                <TableCell><StatusPill label={task.vibe_priorityname ?? '—'} color={statusColor(task.vibe_priorityname)} /></TableCell>
+                <TableCell className={s.monoCell}>{task.vibe_duedate?.slice(0, 10) ?? '—'}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-      <div className={s.formGrid}>
-        <Field label="Task"><Input value={taskForm.name} onChange={(_, d) => setTaskForm((p) => ({ ...p, name: d.value }))} /></Field>
+      <div className={s.formZone}>
+        <Field label="Task name"><Input value={taskForm.name} onChange={(_, d) => setTaskForm((p) => ({ ...p, name: d.value }))} /></Field>
         <Field label="Project"><Select value={taskForm.projectId} onChange={(_, d) => setTaskForm((p) => ({ ...p, projectId: d.value }))}>{projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}</Select></Field>
-        <Field label="Due"><Input type="date" value={taskForm.dueDate} onChange={(_, d) => setTaskForm((p) => ({ ...p, dueDate: d.value }))} /></Field>
+        <Field label="Due date"><Input type="date" value={taskForm.dueDate} onChange={(_, d) => setTaskForm((p) => ({ ...p, dueDate: d.value }))} /></Field>
         <Field label="Status"><Select value={taskForm.status} onChange={(_, d) => setTaskForm((p) => ({ ...p, status: d.value }))}>{entries(Vibe_tasksvibe_taskstatus).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
         <Field label="Priority"><Select value={taskForm.priority} onChange={(_, d) => setTaskForm((p) => ({ ...p, priority: d.value }))}>{entries(Vibe_tasksvibe_priority).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
       </div>
@@ -1167,15 +1372,29 @@ function App() {
         <Button onClick={resetTaskForm}>Clear</Button>
         <Button disabled={!taskForm.id} onClick={deleteTask}>Delete</Button>
       </div>
-    </Card>
+    </div>
   )
 
   const renderTeam = () => (
-    <Card className={s.tableCard}>
-      <CardHeader header={<Text weight="semibold">Team (CRUD)</Text>} />
-      <div className={s.tableScroll}>
+    <div className={s.panel}>
+      <div className={s.panelHead}>
+        <span className={s.panelTitle}>Team Members</span>
+        <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>
+          {filteredTeam.length} members
+        </span>
+      </div>
+      <div className={s.tableWrap}>
         <Table>
-          <TableHeader><TableRow><TableHeaderCell>Name</TableHeaderCell><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>Role</TableHeaderCell><TableHeaderCell>Allocation</TableHeaderCell><TableHeaderCell>Rate</TableHeaderCell></TableRow></TableHeader>
+          <TableHeader>
+            <TableRow>
+              <TableHeaderCell>Name</TableHeaderCell>
+              <TableHeaderCell>Project</TableHeaderCell>
+              <TableHeaderCell>Role</TableHeaderCell>
+              <TableHeaderCell>Allocation</TableHeaderCell>
+              <TableHeaderCell>Rate / hr</TableHeaderCell>
+              <TableHeaderCell>Active</TableHeaderCell>
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {filteredTeam.map((m) => (
               <TableRow key={m.vibe_projectteammemberid} className={s.rowClickable} onClick={() => setTeamForm({
@@ -1190,23 +1409,26 @@ function App() {
                 isActive: m.vibe_isactive ?? true,
               })}>
                 <TableCell>{m.vibe_name}</TableCell>
-                <TableCell>{m._vibe_projectid_value ? (projectById[m._vibe_projectid_value] ?? '-') : '-'}</TableCell>
-                <TableCell>{m.vibe_roleidname}</TableCell>
-                <TableCell>{m.vibe_allocationpercentage}</TableCell>
-                <TableCell>{m.vibe_hourlyrate}</TableCell>
+                <TableCell>{m._vibe_projectid_value ? (projectById[m._vibe_projectid_value] ?? '—') : '—'}</TableCell>
+                <TableCell>{m.vibe_roleidname ?? '—'}</TableCell>
+                <TableCell className={s.monoCell}>{m.vibe_allocationpercentage != null ? `${m.vibe_allocationpercentage}%` : '—'}</TableCell>
+                <TableCell className={s.monoCell}>{m.vibe_hourlyrate ?? '—'}</TableCell>
+                <TableCell>
+                  <StatusPill label={m.vibe_isactive ? 'Active' : 'Inactive'} color={m.vibe_isactive ? 'var(--c-green)' : 'var(--c-text-2)'} />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-      <div className={s.formGrid}>
+      <div className={s.formZone}>
         <Field label="Name"><Input value={teamForm.name} onChange={(_, d) => setTeamForm((p) => ({ ...p, name: d.value }))} /></Field>
         <Field label="Project"><Select value={teamForm.projectId} onChange={(_, d) => setTeamForm((p) => ({ ...p, projectId: d.value }))}>{projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}</Select></Field>
         <Field label="Role"><Select value={teamForm.roleId} onChange={(_, d) => setTeamForm((p) => ({ ...p, roleId: d.value }))}>{roles.map((r) => <option key={r.vibe_projectroleid} value={r.vibe_projectroleid}>{r.vibe_name}</option>)}</Select></Field>
         <Field label="Allocation %"><Input value={teamForm.allocation} onChange={(_, d) => setTeamForm((p) => ({ ...p, allocation: d.value }))} /></Field>
         <Field label="Hourly rate"><Input value={teamForm.hourlyRate} onChange={(_, d) => setTeamForm((p) => ({ ...p, hourlyRate: d.value }))} /></Field>
-        <Field label="Start"><Input type="date" value={teamForm.startDate} onChange={(_, d) => setTeamForm((p) => ({ ...p, startDate: d.value }))} /></Field>
-        <Field label="End"><Input type="date" value={teamForm.endDate} onChange={(_, d) => setTeamForm((p) => ({ ...p, endDate: d.value }))} /></Field>
+        <Field label="Start date"><Input type="date" value={teamForm.startDate} onChange={(_, d) => setTeamForm((p) => ({ ...p, startDate: d.value }))} /></Field>
+        <Field label="End date"><Input type="date" value={teamForm.endDate} onChange={(_, d) => setTeamForm((p) => ({ ...p, endDate: d.value }))} /></Field>
         <Field label="Active"><Switch checked={teamForm.isActive} onChange={(_, d) => setTeamForm((p) => ({ ...p, isActive: d.checked }))} /></Field>
       </div>
       <div className={s.formActions}>
@@ -1214,100 +1436,161 @@ function App() {
         <Button onClick={resetTeamForm}>Clear</Button>
         <Button disabled={!teamForm.id} onClick={deleteTeam}>Delete</Button>
       </div>
-    </Card>
+    </div>
   )
 
   const renderPlanning = () => (
-    <Card className={s.tableCard}>
-      <CardHeader header={<Text weight="semibold">Planning</Text>} />
-      <div className={s.tableScroll}>
+    <div className={s.panel}>
+      <div className={s.panelHead}>
+        <span className={s.panelTitle}>Resource Planning</span>
+        <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>
+          {allocations.filter((a) => !selectedProjectId || a._vibe_projectid_value === selectedProjectId).length} allocations
+        </span>
+      </div>
+      <div className={s.tableWrap}>
         <Table>
-          <TableHeader><TableRow><TableHeaderCell>Allocation</TableHeaderCell><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>Member</TableHeaderCell><TableHeaderCell>Week</TableHeaderCell><TableHeaderCell>Planned</TableHeaderCell><TableHeaderCell>Actual</TableHeaderCell></TableRow></TableHeader>
+          <TableHeader>
+            <TableRow>
+              <TableHeaderCell>Allocation</TableHeaderCell>
+              <TableHeaderCell>Project</TableHeaderCell>
+              <TableHeaderCell>Member</TableHeaderCell>
+              <TableHeaderCell>Week Start</TableHeaderCell>
+              <TableHeaderCell>Planned hrs</TableHeaderCell>
+              <TableHeaderCell>Actual hrs</TableHeaderCell>
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {allocations.filter((a) => !selectedProjectId || a._vibe_projectid_value === selectedProjectId).map((a) => (
               <TableRow key={a.vibe_resourceallocationid}>
                 <TableCell>{a.vibe_name}</TableCell>
-                <TableCell>{a._vibe_projectid_value ? (projectById[a._vibe_projectid_value] ?? '-') : '-'}</TableCell>
+                <TableCell>{a._vibe_projectid_value ? (projectById[a._vibe_projectid_value] ?? '—') : '—'}</TableCell>
                 <TableCell>{a.vibe_projectteammemberidname}</TableCell>
-                <TableCell>{a.vibe_weekstartdate?.slice(0, 10)}</TableCell>
-                <TableCell><Badge color={(a.vibe_plannedhours ?? 0) > 40 ? 'danger' : (a.vibe_plannedhours ?? 0) === 40 ? 'informative' : 'success'}>{a.vibe_plannedhours ?? 0}</Badge></TableCell>
-                <TableCell>{a.vibe_actualhours ?? 0}</TableCell>
+                <TableCell className={s.monoCell}>{a.vibe_weekstartdate?.slice(0, 10)}</TableCell>
+                <TableCell>
+                  <Badge color={(a.vibe_plannedhours ?? 0) > 40 ? 'danger' : (a.vibe_plannedhours ?? 0) === 40 ? 'informative' : 'success'}>
+                    {a.vibe_plannedhours ?? 0}
+                  </Badge>
+                </TableCell>
+                <TableCell className={s.monoCell}>{a.vibe_actualhours ?? 0}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-    </Card>
+    </div>
   )
 
   const renderBudget = () => (
-    <Card className={s.tableCard}>
-      <CardHeader header={<Text weight="semibold">Budget (CRUD)</Text>} />
-      <div className={s.tableScroll}>
-        <Table>
-          <TableHeader><TableRow><TableHeaderCell>Name</TableHeaderCell><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>Category</TableHeaderCell><TableHeaderCell>Estimated</TableHeaderCell><TableHeaderCell>Actual</TableHeaderCell></TableRow></TableHeader>
-          <TableBody>
-            {filteredBudget.map((line) => (
-              <TableRow key={line.vibe_budgetlineid} className={s.rowClickable} onClick={() => setBudgetForm({
-                id: line.vibe_budgetlineid,
-                name: line.vibe_name ?? '',
-                projectId: line._vibe_projectid_value ?? '',
-                estimated: `${line.vibe_estimatedamount ?? ''}`,
-                actual: `${line.vibe_actualamount ?? ''}`,
-                category: `${line.vibe_category ?? 100000005}`,
-              })}>
-                <TableCell>{line.vibe_name}</TableCell>
-                <TableCell>{line._vibe_projectid_value ? (projectById[line._vibe_projectid_value] ?? '-') : '-'}</TableCell>
-                <TableCell>{line.vibe_categoryname}</TableCell>
-                <TableCell>{line.vibe_estimatedamount}</TableCell>
-                <TableCell>{line.vibe_actualamount}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-      <div className={s.formGrid}>
-        <Field label="Name"><Input value={budgetForm.name} onChange={(_, d) => setBudgetForm((p) => ({ ...p, name: d.value }))} /></Field>
-        <Field label="Project"><Select value={budgetForm.projectId} onChange={(_, d) => setBudgetForm((p) => ({ ...p, projectId: d.value }))}>{projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}</Select></Field>
-        <Field label="Category"><Select value={budgetForm.category} onChange={(_, d) => setBudgetForm((p) => ({ ...p, category: d.value }))}>{entries(Vibe_budgetlinesvibe_category).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
-        <Field label="Estimated"><Input value={budgetForm.estimated} onChange={(_, d) => setBudgetForm((p) => ({ ...p, estimated: d.value }))} /></Field>
-        <Field label="Actual"><Input value={budgetForm.actual} onChange={(_, d) => setBudgetForm((p) => ({ ...p, actual: d.value }))} /></Field>
-      </div>
-      <div className={s.formActions}>
-        <Button appearance="primary" onClick={upsertBudget}>{budgetForm.id ? 'Update' : 'Create'} Budget Line</Button>
-        <Button onClick={resetBudgetForm}>Clear</Button>
-        <Button disabled={!budgetForm.id} onClick={deleteBudget}>Delete</Button>
-      </div>
-      <Card className={s.card}>
-        <Text weight="semibold">Invoices</Text>
-        <div className={s.tableScroll}>
+    <div className={s.colStack}>
+      <div className={s.panel}>
+        <div className={s.panelHead}>
+          <span className={s.panelTitle}>Budget Lines</span>
+          <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>
+            {filteredBudget.length} lines
+          </span>
+        </div>
+        <div className={s.tableWrap}>
           <Table>
-            <TableHeader><TableRow><TableHeaderCell>Invoice</TableHeaderCell><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>Issued</TableHeaderCell><TableHeaderCell>Due</TableHeaderCell><TableHeaderCell>Paid</TableHeaderCell><TableHeaderCell>Amount</TableHeaderCell></TableRow></TableHeader>
+            <TableHeader>
+              <TableRow>
+                <TableHeaderCell>Name</TableHeaderCell>
+                <TableHeaderCell>Project</TableHeaderCell>
+                <TableHeaderCell>Category</TableHeaderCell>
+                <TableHeaderCell>Estimated</TableHeaderCell>
+                <TableHeaderCell>Actual</TableHeaderCell>
+              </TableRow>
+            </TableHeader>
             <TableBody>
-              {invoices.filter((i) => !selectedProjectId || i._vibe_projectid_value === selectedProjectId).map((i) => (
-                <TableRow key={i.vibe_invoiceid}>
-                  <TableCell>{i.vibe_invoicenumber}</TableCell>
-                  <TableCell>{i._vibe_projectid_value ? (projectById[i._vibe_projectid_value] ?? '-') : '-'}</TableCell>
-                  <TableCell>{i.vibe_dateissued?.slice(0, 10)}</TableCell>
-                  <TableCell>{i.vibe_duedate?.slice(0, 10)}</TableCell>
-                  <TableCell>{i.vibe_datepaid?.slice(0, 10) ?? '-'}</TableCell>
-                  <TableCell>{i.vibe_amount}</TableCell>
+              {filteredBudget.map((line) => (
+                <TableRow key={line.vibe_budgetlineid} className={s.rowClickable} onClick={() => setBudgetForm({
+                  id: line.vibe_budgetlineid,
+                  name: line.vibe_name ?? '',
+                  projectId: line._vibe_projectid_value ?? '',
+                  estimated: `${line.vibe_estimatedamount ?? ''}`,
+                  actual: `${line.vibe_actualamount ?? ''}`,
+                  category: `${line.vibe_category ?? 100000005}`,
+                })}>
+                  <TableCell>{line.vibe_name}</TableCell>
+                  <TableCell>{line._vibe_projectid_value ? (projectById[line._vibe_projectid_value] ?? '—') : '—'}</TableCell>
+                  <TableCell>{line.vibe_categoryname}</TableCell>
+                  <TableCell className={s.monoCell}>{line.vibe_estimatedamount?.toLocaleString() ?? '—'}</TableCell>
+                  <TableCell className={s.monoCell}>{line.vibe_actualamount?.toLocaleString() ?? '—'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
-      </Card>
-    </Card>
+        <div className={s.formZone}>
+          <Field label="Name"><Input value={budgetForm.name} onChange={(_, d) => setBudgetForm((p) => ({ ...p, name: d.value }))} /></Field>
+          <Field label="Project"><Select value={budgetForm.projectId} onChange={(_, d) => setBudgetForm((p) => ({ ...p, projectId: d.value }))}>{projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}</Select></Field>
+          <Field label="Category"><Select value={budgetForm.category} onChange={(_, d) => setBudgetForm((p) => ({ ...p, category: d.value }))}>{entries(Vibe_budgetlinesvibe_category).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
+          <Field label="Estimated"><Input value={budgetForm.estimated} onChange={(_, d) => setBudgetForm((p) => ({ ...p, estimated: d.value }))} /></Field>
+          <Field label="Actual"><Input value={budgetForm.actual} onChange={(_, d) => setBudgetForm((p) => ({ ...p, actual: d.value }))} /></Field>
+        </div>
+        <div className={s.formActions}>
+          <Button appearance="primary" onClick={upsertBudget}>{budgetForm.id ? 'Update' : 'Create'} Budget Line</Button>
+          <Button onClick={resetBudgetForm}>Clear</Button>
+          <Button disabled={!budgetForm.id} onClick={deleteBudget}>Delete</Button>
+        </div>
+      </div>
+
+      <div className={s.panel}>
+        <div className={s.panelHead}>
+          <span className={s.panelTitle}>Invoices</span>
+          <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>
+            {invoices.filter((i) => !selectedProjectId || i._vibe_projectid_value === selectedProjectId).length} invoices
+          </span>
+        </div>
+        <div className={s.tableWrap}>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHeaderCell>Invoice #</TableHeaderCell>
+                <TableHeaderCell>Project</TableHeaderCell>
+                <TableHeaderCell>Issued</TableHeaderCell>
+                <TableHeaderCell>Due</TableHeaderCell>
+                <TableHeaderCell>Paid</TableHeaderCell>
+                <TableHeaderCell>Amount</TableHeaderCell>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invoices.filter((i) => !selectedProjectId || i._vibe_projectid_value === selectedProjectId).map((i) => (
+                <TableRow key={i.vibe_invoiceid}>
+                  <TableCell className={s.monoCell}>{i.vibe_invoicenumber}</TableCell>
+                  <TableCell>{i._vibe_projectid_value ? (projectById[i._vibe_projectid_value] ?? '—') : '—'}</TableCell>
+                  <TableCell className={s.monoCell}>{i.vibe_dateissued?.slice(0, 10) ?? '—'}</TableCell>
+                  <TableCell className={s.monoCell}>{i.vibe_duedate?.slice(0, 10) ?? '—'}</TableCell>
+                  <TableCell>
+                    {i.vibe_datepaid
+                      ? <StatusPill label={i.vibe_datepaid.slice(0, 10)} color="var(--c-green)" />
+                      : <StatusPill label="Unpaid" color="var(--c-amber)" />}
+                  </TableCell>
+                  <TableCell className={s.monoCell}>{i.vibe_amount?.toLocaleString() ?? '—'}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
   )
 
   const renderRaid = () => (
-    <div className={s.twoColumn}>
-      <Card className={s.tableCard}>
-        <CardHeader header={<Text weight="semibold">Risks (CRUD)</Text>} />
-        <div className={s.tableScroll}>
+    <div className={s.twoCol}>
+      <div className={s.panel}>
+        <div className={s.panelHead}>
+          <span className={s.panelTitle}>Risks</span>
+          <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>{filteredRisks.length}</span>
+        </div>
+        <div className={s.tableWrap}>
           <Table>
-            <TableHeader><TableRow><TableHeaderCell>Title</TableHeaderCell><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>Status</TableHeaderCell><TableHeaderCell>Score</TableHeaderCell></TableRow></TableHeader>
+            <TableHeader>
+              <TableRow>
+                <TableHeaderCell>Title</TableHeaderCell>
+                <TableHeaderCell>Status</TableHeaderCell>
+                <TableHeaderCell>Score</TableHeaderCell>
+              </TableRow>
+            </TableHeader>
             <TableBody>
               {filteredRisks.map((risk) => (
                 <TableRow key={risk.vibe_riskid} className={s.rowClickable} onClick={() => setRiskForm({
@@ -1319,15 +1602,14 @@ function App() {
                   status: `${risk.vibe_riskstatus ?? 100000000}`,
                 })}>
                   <TableCell>{risk.vibe_title}</TableCell>
-                  <TableCell>{risk._vibe_projectid_value ? (projectById[risk._vibe_projectid_value] ?? '-') : '-'}</TableCell>
-                  <TableCell>{risk.vibe_riskstatusname}</TableCell>
-                  <TableCell>{risk.vibe_riskscore}</TableCell>
+                  <TableCell><StatusPill label={risk.vibe_riskstatusname ?? '—'} color={statusColor(risk.vibe_riskstatusname)} /></TableCell>
+                  <TableCell className={s.monoCell}>{risk.vibe_riskscore ?? '—'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
-        <div className={s.formGrid}>
+        <div className={s.formZone}>
           <Field label="Title"><Input value={riskForm.title} onChange={(_, d) => setRiskForm((p) => ({ ...p, title: d.value }))} /></Field>
           <Field label="Project"><Select value={riskForm.projectId} onChange={(_, d) => setRiskForm((p) => ({ ...p, projectId: d.value }))}>{projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}</Select></Field>
           <Field label="Probability"><Select value={riskForm.probability} onChange={(_, d) => setRiskForm((p) => ({ ...p, probability: d.value }))}>{entries(Vibe_risksvibe_probability).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
@@ -1339,12 +1621,22 @@ function App() {
           <Button onClick={resetRiskForm}>Clear</Button>
           <Button disabled={!riskForm.id} onClick={deleteRisk}>Delete</Button>
         </div>
-      </Card>
-      <Card className={s.tableCard}>
-        <CardHeader header={<Text weight="semibold">Issues (CRUD)</Text>} />
-        <div className={s.tableScroll}>
+      </div>
+
+      <div className={s.panel}>
+        <div className={s.panelHead}>
+          <span className={s.panelTitle}>Issues</span>
+          <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>{filteredIssues.length}</span>
+        </div>
+        <div className={s.tableWrap}>
           <Table>
-            <TableHeader><TableRow><TableHeaderCell>Title</TableHeaderCell><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>Severity</TableHeaderCell><TableHeaderCell>Status</TableHeaderCell></TableRow></TableHeader>
+            <TableHeader>
+              <TableRow>
+                <TableHeaderCell>Title</TableHeaderCell>
+                <TableHeaderCell>Severity</TableHeaderCell>
+                <TableHeaderCell>Status</TableHeaderCell>
+              </TableRow>
+            </TableHeader>
             <TableBody>
               {filteredIssues.map((issue) => (
                 <TableRow key={issue.vibe_issueid} className={s.rowClickable} onClick={() => setIssueForm({
@@ -1355,15 +1647,14 @@ function App() {
                   status: `${issue.vibe_issuestatus ?? 100000000}`,
                 })}>
                   <TableCell>{issue.vibe_title}</TableCell>
-                  <TableCell>{issue._vibe_projectid_value ? (projectById[issue._vibe_projectid_value] ?? '-') : '-'}</TableCell>
-                  <TableCell>{issue.vibe_severityname}</TableCell>
-                  <TableCell>{issue.vibe_issuestatusname}</TableCell>
+                  <TableCell><StatusPill label={issue.vibe_severityname ?? '—'} color={statusColor(issue.vibe_severityname)} /></TableCell>
+                  <TableCell><StatusPill label={issue.vibe_issuestatusname ?? '—'} color={statusColor(issue.vibe_issuestatusname)} /></TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
-        <div className={s.formGrid}>
+        <div className={s.formZone}>
           <Field label="Title"><Input value={issueForm.title} onChange={(_, d) => setIssueForm((p) => ({ ...p, title: d.value }))} /></Field>
           <Field label="Project"><Select value={issueForm.projectId} onChange={(_, d) => setIssueForm((p) => ({ ...p, projectId: d.value }))}>{projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}</Select></Field>
           <Field label="Severity"><Select value={issueForm.severity} onChange={(_, d) => setIssueForm((p) => ({ ...p, severity: d.value }))}>{entries(Vibe_issuesvibe_severity).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
@@ -1374,16 +1665,29 @@ function App() {
           <Button onClick={resetIssueForm}>Clear</Button>
           <Button disabled={!issueForm.id} onClick={deleteIssue}>Delete</Button>
         </div>
-      </Card>
+      </div>
     </div>
   )
 
   const renderDeliverables = () => (
-    <Card className={s.tableCard}>
-      <CardHeader header={<Text weight="semibold">Deliverables (CRUD)</Text>} />
-      <div className={s.tableScroll}>
+    <div className={s.panel}>
+      <div className={s.panelHead}>
+        <span className={s.panelTitle}>Deliverables</span>
+        <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>
+          {filteredDeliverables.length} items
+        </span>
+      </div>
+      <div className={s.tableWrap}>
         <Table>
-          <TableHeader><TableRow><TableHeaderCell>Name</TableHeaderCell><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>Responsible</TableHeaderCell><TableHeaderCell>Due</TableHeaderCell><TableHeaderCell>Status</TableHeaderCell></TableRow></TableHeader>
+          <TableHeader>
+            <TableRow>
+              <TableHeaderCell>Name</TableHeaderCell>
+              <TableHeaderCell>Project</TableHeaderCell>
+              <TableHeaderCell>Responsible</TableHeaderCell>
+              <TableHeaderCell>Due</TableHeaderCell>
+              <TableHeaderCell>Status</TableHeaderCell>
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {filteredDeliverables.map((d) => (
               <TableRow key={d.vibe_deliverableid} className={s.rowClickable} onClick={() => setDeliverableForm({
@@ -1396,20 +1700,20 @@ function App() {
                 responsibleId: d._vibe_responsibleid_value ?? '',
               })}>
                 <TableCell>{d.vibe_name}</TableCell>
-                <TableCell>{d._vibe_projectid_value ? (projectById[d._vibe_projectid_value] ?? '-') : '-'}</TableCell>
-                <TableCell>{d.vibe_responsibleidname}</TableCell>
-                <TableCell>{d.vibe_duedate?.slice(0, 10)}</TableCell>
-                <TableCell>{d.vibe_deliverablestatusname}</TableCell>
+                <TableCell>{d._vibe_projectid_value ? (projectById[d._vibe_projectid_value] ?? '—') : '—'}</TableCell>
+                <TableCell>{d.vibe_responsibleidname ?? '—'}</TableCell>
+                <TableCell className={s.monoCell}>{d.vibe_duedate?.slice(0, 10) ?? '—'}</TableCell>
+                <TableCell><StatusPill label={d.vibe_deliverablestatusname ?? '—'} color={statusColor(d.vibe_deliverablestatusname)} /></TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-      <div className={s.formGrid}>
+      <div className={s.formZone}>
         <Field label="Name"><Input value={deliverableForm.name} onChange={(_, d) => setDeliverableForm((p) => ({ ...p, name: d.value }))} /></Field>
         <Field label="Project"><Select value={deliverableForm.projectId} onChange={(_, d) => setDeliverableForm((p) => ({ ...p, projectId: d.value }))}>{projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}</Select></Field>
         <Field label="Responsible"><Select value={deliverableForm.responsibleId} onChange={(_, d) => setDeliverableForm((p) => ({ ...p, responsibleId: d.value }))}><option value="">None</option>{teamMembers.map((m) => <option key={m.vibe_projectteammemberid} value={m.vibe_projectteammemberid}>{m.vibe_name}</option>)}</Select></Field>
-        <Field label="Due"><Input type="date" value={deliverableForm.dueDate} onChange={(_, d) => setDeliverableForm((p) => ({ ...p, dueDate: d.value }))} /></Field>
+        <Field label="Due date"><Input type="date" value={deliverableForm.dueDate} onChange={(_, d) => setDeliverableForm((p) => ({ ...p, dueDate: d.value }))} /></Field>
         <Field label="Status"><Select value={deliverableForm.status} onChange={(_, d) => setDeliverableForm((p) => ({ ...p, status: d.value }))}>{entries(Vibe_deliverablesvibe_deliverablestatus).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
         <Field label="Document link"><Input value={deliverableForm.documentLink} onChange={(_, d) => setDeliverableForm((p) => ({ ...p, documentLink: d.value }))} /></Field>
       </div>
@@ -1418,15 +1722,29 @@ function App() {
         <Button onClick={resetDeliverableForm}>Clear</Button>
         <Button disabled={!deliverableForm.id} onClick={deleteDeliverable}>Delete</Button>
       </div>
-    </Card>
+    </div>
   )
 
   const renderTime = () => (
-    <Card className={s.tableCard}>
-      <CardHeader header={<Text weight="semibold">Time Entry (CRUD)</Text>} />
-      <div className={s.tableScroll}>
+    <div className={s.panel}>
+      <div className={s.panelHead}>
+        <span className={s.panelTitle}>Time Entries</span>
+        <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>
+          {filteredTime.reduce((s, t) => s + (t.vibe_hours ?? 0), 0).toFixed(1)} hrs logged
+        </span>
+      </div>
+      <div className={s.tableWrap}>
         <Table>
-          <TableHeader><TableRow><TableHeaderCell>Name</TableHeaderCell><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>Task</TableHeaderCell><TableHeaderCell>Team Member</TableHeaderCell><TableHeaderCell>Date</TableHeaderCell><TableHeaderCell>Hours</TableHeaderCell></TableRow></TableHeader>
+          <TableHeader>
+            <TableRow>
+              <TableHeaderCell>Name</TableHeaderCell>
+              <TableHeaderCell>Project</TableHeaderCell>
+              <TableHeaderCell>Task</TableHeaderCell>
+              <TableHeaderCell>Member</TableHeaderCell>
+              <TableHeaderCell>Date</TableHeaderCell>
+              <TableHeaderCell>Hours</TableHeaderCell>
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {filteredTime.map((t) => (
               <TableRow key={t.vibe_timeentryid} className={s.rowClickable} onClick={() => setTimeForm({
@@ -1439,17 +1757,17 @@ function App() {
                 hours: `${t.vibe_hours ?? ''}`,
               })}>
                 <TableCell>{t.vibe_name}</TableCell>
-                <TableCell>{t._vibe_projectid_value ? (projectById[t._vibe_projectid_value] ?? '-') : '-'}</TableCell>
-                <TableCell>{t.vibe_taskidname}</TableCell>
-                <TableCell>{t.vibe_teammemberidname}</TableCell>
-                <TableCell>{t.vibe_date?.slice(0, 10)}</TableCell>
-                <TableCell>{t.vibe_hours}</TableCell>
+                <TableCell>{t._vibe_projectid_value ? (projectById[t._vibe_projectid_value] ?? '—') : '—'}</TableCell>
+                <TableCell>{t.vibe_taskidname ?? '—'}</TableCell>
+                <TableCell>{t.vibe_teammemberidname ?? '—'}</TableCell>
+                <TableCell className={s.monoCell}>{t.vibe_date?.slice(0, 10) ?? '—'}</TableCell>
+                <TableCell className={s.monoCell}>{t.vibe_hours ?? '—'}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-      <div className={s.formGrid}>
+      <div className={s.formZone}>
         <Field label="Entry name"><Input value={timeForm.name} onChange={(_, d) => setTimeForm((p) => ({ ...p, name: d.value }))} /></Field>
         <Field label="Project"><Select value={timeForm.projectId} onChange={(_, d) => setTimeForm((p) => ({ ...p, projectId: d.value }))}>{projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}</Select></Field>
         <Field label="Task"><Select value={timeForm.taskId} onChange={(_, d) => setTimeForm((p) => ({ ...p, taskId: d.value }))}>{tasks.map((t) => <option key={t.vibe_taskid} value={t.vibe_taskid}>{t.vibe_name}</option>)}</Select></Field>
@@ -1462,88 +1780,122 @@ function App() {
         <Button onClick={resetTimeForm}>Clear</Button>
         <Button disabled={!timeForm.id} onClick={deleteTime}>Delete</Button>
       </div>
-    </Card>
+    </div>
   )
 
   const renderCommunication = () => (
-    <div className={s.twoColumn}>
-      <Card className={s.tableCard}>
-        <CardHeader header={<Text weight="semibold">Decision Log (CRUD)</Text>} />
-        <div className={s.tableScroll}>
-          <Table>
-            <TableHeader><TableRow><TableHeaderCell>Title</TableHeaderCell><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>Made By</TableHeaderCell><TableHeaderCell>Date</TableHeaderCell></TableRow></TableHeader>
-            <TableBody>
-              {filteredDecisions.map((d) => (
-                <TableRow key={d.vibe_decisionlogid} className={s.rowClickable} onClick={() => setDecisionForm({
-                  id: d.vibe_decisionlogid,
-                  title: d.vibe_title ?? '',
-                  projectId: d._vibe_projectid_value ?? '',
-                  madeById: d._vibe_madebyid_value ?? '',
-                  date: d.vibe_date?.slice(0, 10) ?? '',
-                })}>
-                  <TableCell>{d.vibe_title}</TableCell>
-                  <TableCell>{d._vibe_projectid_value ? (projectById[d._vibe_projectid_value] ?? '-') : '-'}</TableCell>
-                  <TableCell>{d.vibe_madebyidname}</TableCell>
-                  <TableCell>{d.vibe_date?.slice(0, 10)}</TableCell>
+    <div className={s.colStack}>
+      <div className={s.twoCol}>
+        <div className={s.panel}>
+          <div className={s.panelHead}>
+            <span className={s.panelTitle}>Decision Log</span>
+            <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>{filteredDecisions.length}</span>
+          </div>
+          <div className={s.tableWrap}>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHeaderCell>Title</TableHeaderCell>
+                  <TableHeaderCell>Made By</TableHeaderCell>
+                  <TableHeaderCell>Date</TableHeaderCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredDecisions.map((d) => (
+                  <TableRow key={d.vibe_decisionlogid} className={s.rowClickable} onClick={() => setDecisionForm({
+                    id: d.vibe_decisionlogid,
+                    title: d.vibe_title ?? '',
+                    projectId: d._vibe_projectid_value ?? '',
+                    madeById: d._vibe_madebyid_value ?? '',
+                    date: d.vibe_date?.slice(0, 10) ?? '',
+                  })}>
+                    <TableCell>{d.vibe_title}</TableCell>
+                    <TableCell>{d.vibe_madebyidname ?? '—'}</TableCell>
+                    <TableCell className={s.monoCell}>{d.vibe_date?.slice(0, 10) ?? '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <div className={s.formZone}>
+            <Field label="Title"><Input value={decisionForm.title} onChange={(_, d) => setDecisionForm((p) => ({ ...p, title: d.value }))} /></Field>
+            <Field label="Project"><Select value={decisionForm.projectId} onChange={(_, d) => setDecisionForm((p) => ({ ...p, projectId: d.value }))}>{projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}</Select></Field>
+            <Field label="Made by"><Select value={decisionForm.madeById} onChange={(_, d) => setDecisionForm((p) => ({ ...p, madeById: d.value }))}><option value="">None</option>{teamMembers.map((m) => <option key={m.vibe_projectteammemberid} value={m.vibe_projectteammemberid}>{m.vibe_name}</option>)}</Select></Field>
+            <Field label="Date"><Input type="date" value={decisionForm.date} onChange={(_, d) => setDecisionForm((p) => ({ ...p, date: d.value }))} /></Field>
+          </div>
+          <div className={s.formActions}>
+            <Button appearance="primary" onClick={upsertDecision}>{decisionForm.id ? 'Update' : 'Create'} Decision</Button>
+            <Button onClick={resetDecisionForm}>Clear</Button>
+            <Button disabled={!decisionForm.id} onClick={deleteDecision}>Delete</Button>
+          </div>
         </div>
-        <div className={s.formGrid}>
-          <Field label="Title"><Input value={decisionForm.title} onChange={(_, d) => setDecisionForm((p) => ({ ...p, title: d.value }))} /></Field>
-          <Field label="Project"><Select value={decisionForm.projectId} onChange={(_, d) => setDecisionForm((p) => ({ ...p, projectId: d.value }))}>{projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}</Select></Field>
-          <Field label="Made by"><Select value={decisionForm.madeById} onChange={(_, d) => setDecisionForm((p) => ({ ...p, madeById: d.value }))}><option value="">None</option>{teamMembers.map((m) => <option key={m.vibe_projectteammemberid} value={m.vibe_projectteammemberid}>{m.vibe_name}</option>)}</Select></Field>
-          <Field label="Date"><Input type="date" value={decisionForm.date} onChange={(_, d) => setDecisionForm((p) => ({ ...p, date: d.value }))} /></Field>
-        </div>
-        <div className={s.formActions}>
-          <Button appearance="primary" onClick={upsertDecision}>{decisionForm.id ? 'Update' : 'Create'} Decision</Button>
-          <Button onClick={resetDecisionForm}>Clear</Button>
-          <Button disabled={!decisionForm.id} onClick={deleteDecision}>Delete</Button>
-        </div>
-      </Card>
-      <Card className={s.tableCard}>
-        <CardHeader header={<Text weight="semibold">Meeting Notes (CRUD)</Text>} />
-        <div className={s.tableScroll}>
-          <Table>
-            <TableHeader><TableRow><TableHeaderCell>Title</TableHeaderCell><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>Date</TableHeaderCell></TableRow></TableHeader>
-            <TableBody>
-              {filteredMeetings.map((m) => (
-                <TableRow key={m.vibe_meetingnoteid} className={s.rowClickable} onClick={() => setMeetingForm({
-                  id: m.vibe_meetingnoteid,
-                  title: m.vibe_title ?? '',
-                  projectId: m._vibe_projectid_value ?? '',
-                  date: m.vibe_date?.slice(0, 10) ?? '',
-                })}>
-                  <TableCell>{m.vibe_title}</TableCell>
-                  <TableCell>{m._vibe_projectid_value ? (projectById[m._vibe_projectid_value] ?? '-') : '-'}</TableCell>
-                  <TableCell>{m.vibe_date?.slice(0, 10)}</TableCell>
+
+        <div className={s.panel}>
+          <div className={s.panelHead}>
+            <span className={s.panelTitle}>Meeting Notes</span>
+            <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>{filteredMeetings.length}</span>
+          </div>
+          <div className={s.tableWrap}>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHeaderCell>Title</TableHeaderCell>
+                  <TableHeaderCell>Project</TableHeaderCell>
+                  <TableHeaderCell>Date</TableHeaderCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredMeetings.map((m) => (
+                  <TableRow key={m.vibe_meetingnoteid} className={s.rowClickable} onClick={() => setMeetingForm({
+                    id: m.vibe_meetingnoteid,
+                    title: m.vibe_title ?? '',
+                    projectId: m._vibe_projectid_value ?? '',
+                    date: m.vibe_date?.slice(0, 10) ?? '',
+                  })}>
+                    <TableCell>{m.vibe_title}</TableCell>
+                    <TableCell>{m._vibe_projectid_value ? (projectById[m._vibe_projectid_value] ?? '—') : '—'}</TableCell>
+                    <TableCell className={s.monoCell}>{m.vibe_date?.slice(0, 10) ?? '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <div className={s.formZone}>
+            <Field label="Title"><Input value={meetingForm.title} onChange={(_, d) => setMeetingForm((p) => ({ ...p, title: d.value }))} /></Field>
+            <Field label="Project"><Select value={meetingForm.projectId} onChange={(_, d) => setMeetingForm((p) => ({ ...p, projectId: d.value }))}>{projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}</Select></Field>
+            <Field label="Date"><Input type="date" value={meetingForm.date} onChange={(_, d) => setMeetingForm((p) => ({ ...p, date: d.value }))} /></Field>
+          </div>
+          <div className={s.formActions}>
+            <Button appearance="primary" onClick={upsertMeeting}>{meetingForm.id ? 'Update' : 'Create'} Meeting Note</Button>
+            <Button onClick={resetMeetingForm}>Clear</Button>
+            <Button disabled={!meetingForm.id} onClick={deleteMeeting}>Delete</Button>
+          </div>
         </div>
-        <div className={s.formGrid}>
-          <Field label="Title"><Input value={meetingForm.title} onChange={(_, d) => setMeetingForm((p) => ({ ...p, title: d.value }))} /></Field>
-          <Field label="Project"><Select value={meetingForm.projectId} onChange={(_, d) => setMeetingForm((p) => ({ ...p, projectId: d.value }))}>{projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}</Select></Field>
-          <Field label="Date"><Input type="date" value={meetingForm.date} onChange={(_, d) => setMeetingForm((p) => ({ ...p, date: d.value }))} /></Field>
+      </div>
+
+      <div className={s.panel}>
+        <div className={s.panelHead}>
+          <span className={s.panelTitle}>Activity Feed</span>
+          <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>
+            {feed.filter((f) => !selectedProjectId || f._vibe_projectid_value === selectedProjectId).length} events
+          </span>
         </div>
-        <div className={s.formActions}>
-          <Button appearance="primary" onClick={upsertMeeting}>{meetingForm.id ? 'Update' : 'Create'} Meeting Note</Button>
-          <Button onClick={resetMeetingForm}>Clear</Button>
-          <Button disabled={!meetingForm.id} onClick={deleteMeeting}>Delete</Button>
-        </div>
-      </Card>
-      <Card className={s.tableCard}>
-        <CardHeader header={<Text weight="semibold">Activity Feed</Text>} />
-        <div className={s.tableScroll}>
+        <div className={s.tableWrap}>
           <Table>
-            <TableHeader><TableRow><TableHeaderCell>Timestamp</TableHeaderCell><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>Event</TableHeaderCell><TableHeaderCell>Actor</TableHeaderCell><TableHeaderCell>Description</TableHeaderCell></TableRow></TableHeader>
+            <TableHeader>
+              <TableRow>
+                <TableHeaderCell>Timestamp</TableHeaderCell>
+                <TableHeaderCell>Project</TableHeaderCell>
+                <TableHeaderCell>Event</TableHeaderCell>
+                <TableHeaderCell>Actor</TableHeaderCell>
+                <TableHeaderCell>Description</TableHeaderCell>
+              </TableRow>
+            </TableHeader>
             <TableBody>
               {feed.filter((f) => !selectedProjectId || f._vibe_projectid_value === selectedProjectId).map((f) => (
                 <TableRow key={f.vibe_activityfeedentryid}>
-                  <TableCell>{f.vibe_timestamp?.slice(0, 19).replace('T', ' ')}</TableCell>
-                  <TableCell>{f._vibe_projectid_value ? (projectById[f._vibe_projectid_value] ?? '-') : '-'}</TableCell>
+                  <TableCell className={s.monoCell}>{f.vibe_timestamp?.slice(0, 19).replace('T', ' ')}</TableCell>
+                  <TableCell>{f._vibe_projectid_value ? (projectById[f._vibe_projectid_value] ?? '—') : '—'}</TableCell>
                   <TableCell>{f.vibe_eventtypename}</TableCell>
                   <TableCell>{f.vibe_actoridname}</TableCell>
                   <TableCell>{f.vibe_description}</TableCell>
@@ -1552,35 +1904,59 @@ function App() {
             </TableBody>
           </Table>
         </div>
-      </Card>
+      </div>
     </div>
   )
 
   const renderDocuments = () => (
-    <Card className={s.tableCard}>
-      <CardHeader header={<Text weight="semibold">Documents</Text>} />
-      <div className={s.tableScroll}>
+    <div className={s.panel}>
+      <div className={s.panelHead}>
+        <span className={s.panelTitle}>Documents</span>
+        <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>SharePoint folders</span>
+      </div>
+      <div className={s.tableWrap}>
         <Table>
-          <TableHeader><TableRow><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>SharePoint Folder URL</TableHeaderCell></TableRow></TableHeader>
+          <TableHeader>
+            <TableRow>
+              <TableHeaderCell>Project</TableHeaderCell>
+              <TableHeaderCell>SharePoint Folder</TableHeaderCell>
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {projects.filter((p) => !selectedProjectId || p.vibe_projectid === selectedProjectId).map((p) => (
               <TableRow key={p.vibe_projectid}>
                 <TableCell>{p.vibe_name}</TableCell>
-                <TableCell>{p.vibe_sharepointfolderurl ? <a href={p.vibe_sharepointfolderurl} target="_blank" rel="noreferrer">{p.vibe_sharepointfolderurl}</a> : '-'}</TableCell>
+                <TableCell>
+                  {p.vibe_sharepointfolderurl
+                    ? <a href={p.vibe_sharepointfolderurl} target="_blank" rel="noreferrer">{p.vibe_sharepointfolderurl}</a>
+                    : <span style={{ color: 'var(--c-text-3)' }}>—</span>}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-    </Card>
+    </div>
   )
 
   const renderStakeholders = () => (
-    <Card className={s.tableCard}>
-      <CardHeader header={<Text weight="semibold">Stakeholders</Text>} />
-      <div className={s.tableScroll}>
+    <div className={s.panel}>
+      <div className={s.panelHead}>
+        <span className={s.panelTitle}>Stakeholders</span>
+        <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>
+          Stakeholder roles only
+        </span>
+      </div>
+      <div className={s.tableWrap}>
         <Table>
-          <TableHeader><TableRow><TableHeaderCell>Name</TableHeaderCell><TableHeaderCell>Project</TableHeaderCell><TableHeaderCell>Role</TableHeaderCell><TableHeaderCell>Contact/User</TableHeaderCell></TableRow></TableHeader>
+          <TableHeader>
+            <TableRow>
+              <TableHeaderCell>Name</TableHeaderCell>
+              <TableHeaderCell>Project</TableHeaderCell>
+              <TableHeaderCell>Role</TableHeaderCell>
+              <TableHeaderCell>Contact / User</TableHeaderCell>
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {teamMembers
               .filter((m) => m._vibe_roleid_value && roles.some((r) => r.vibe_projectroleid === m._vibe_roleid_value && r.vibe_isstakeholderrole))
@@ -1588,24 +1964,33 @@ function App() {
               .map((m) => (
                 <TableRow key={m.vibe_projectteammemberid}>
                   <TableCell>{m.vibe_name}</TableCell>
-                  <TableCell>{m._vibe_projectid_value ? (projectById[m._vibe_projectid_value] ?? '-') : '-'}</TableCell>
+                  <TableCell>{m._vibe_projectid_value ? (projectById[m._vibe_projectid_value] ?? '—') : '—'}</TableCell>
                   <TableCell>{m.vibe_roleidname}</TableCell>
-                  <TableCell>{m.vibe_contactidname ?? m.vibe_useridname ?? '-'}</TableCell>
+                  <TableCell>{m.vibe_contactidname ?? m.vibe_useridname ?? '—'}</TableCell>
                 </TableRow>
               ))}
           </TableBody>
         </Table>
       </div>
-    </Card>
+    </div>
   )
 
   const renderSettings = () => (
-    <div className={s.twoColumn}>
-      <Card className={s.tableCard}>
-        <CardHeader header={<Text weight="semibold">Project Roles (CRUD)</Text>} />
-        <div className={s.tableScroll}>
+    <div className={s.twoCol}>
+      <div className={s.panel}>
+        <div className={s.panelHead}>
+          <span className={s.panelTitle}>Project Roles</span>
+          <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>{roles.length}</span>
+        </div>
+        <div className={s.tableWrap}>
           <Table>
-            <TableHeader><TableRow><TableHeaderCell>Name</TableHeaderCell><TableHeaderCell>Default Rate</TableHeaderCell><TableHeaderCell>Stakeholder</TableHeaderCell></TableRow></TableHeader>
+            <TableHeader>
+              <TableRow>
+                <TableHeaderCell>Name</TableHeaderCell>
+                <TableHeaderCell>Default Rate</TableHeaderCell>
+                <TableHeaderCell>Stakeholder</TableHeaderCell>
+              </TableRow>
+            </TableHeader>
             <TableBody>
               {roles.map((r) => (
                 <TableRow key={r.vibe_projectroleid} className={s.rowClickable} onClick={() => setRoleForm({
@@ -1615,14 +2000,18 @@ function App() {
                   isStakeholder: r.vibe_isstakeholderrole ?? false,
                 })}>
                   <TableCell>{r.vibe_name}</TableCell>
-                  <TableCell>{r.vibe_defaulthourlyrate}</TableCell>
-                  <TableCell>{r.vibe_isstakeholderrole ? 'Yes' : 'No'}</TableCell>
+                  <TableCell className={s.monoCell}>{r.vibe_defaulthourlyrate ?? '—'}</TableCell>
+                  <TableCell>
+                    {r.vibe_isstakeholderrole
+                      ? <StatusPill label="Yes" color="var(--c-accent)" />
+                      : <span style={{ color: 'var(--c-text-3)', fontSize: '12px' }}>No</span>}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
-        <div className={s.formGrid}>
+        <div className={s.formZone}>
           <Field label="Name"><Input value={roleForm.name} onChange={(_, d) => setRoleForm((p) => ({ ...p, name: d.value }))} /></Field>
           <Field label="Default hourly rate"><Input value={roleForm.defaultRate} onChange={(_, d) => setRoleForm((p) => ({ ...p, defaultRate: d.value }))} /></Field>
           <Field label="Stakeholder role"><Switch checked={roleForm.isStakeholder} onChange={(_, d) => setRoleForm((p) => ({ ...p, isStakeholder: d.checked }))} /></Field>
@@ -1632,12 +2021,21 @@ function App() {
           <Button onClick={resetRoleForm}>Clear</Button>
           <Button disabled={!roleForm.id} onClick={deleteRole}>Delete</Button>
         </div>
-      </Card>
-      <Card className={s.tableCard}>
-        <CardHeader header={<Text weight="semibold">Project Templates (CRUD)</Text>} />
-        <div className={s.tableScroll}>
+      </div>
+
+      <div className={s.panel}>
+        <div className={s.panelHead}>
+          <span className={s.panelTitle}>Project Templates</span>
+          <span style={{ fontSize: '12px', color: 'var(--c-text-2)', fontFamily: 'var(--font-mono)' }}>{templates.length}</span>
+        </div>
+        <div className={s.tableWrap}>
           <Table>
-            <TableHeader><TableRow><TableHeaderCell>Name</TableHeaderCell><TableHeaderCell>Active</TableHeaderCell></TableRow></TableHeader>
+            <TableHeader>
+              <TableRow>
+                <TableHeaderCell>Name</TableHeaderCell>
+                <TableHeaderCell>Active</TableHeaderCell>
+              </TableRow>
+            </TableHeader>
             <TableBody>
               {templates.map((t) => (
                 <TableRow key={t.vibe_projecttemplateid} className={s.rowClickable} onClick={() => setTemplateForm({
@@ -1646,13 +2044,17 @@ function App() {
                   isActive: t.vibe_isactive ?? true,
                 })}>
                   <TableCell>{t.vibe_name}</TableCell>
-                  <TableCell>{t.vibe_isactive ? 'Yes' : 'No'}</TableCell>
+                  <TableCell>
+                    {t.vibe_isactive
+                      ? <StatusPill label="Active" color="var(--c-green)" />
+                      : <StatusPill label="Inactive" color="var(--c-text-2)" />}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
-        <div className={s.formGrid}>
+        <div className={s.formZone}>
           <Field label="Name"><Input value={templateForm.name} onChange={(_, d) => setTemplateForm((p) => ({ ...p, name: d.value }))} /></Field>
           <Field label="Active"><Switch checked={templateForm.isActive} onChange={(_, d) => setTemplateForm((p) => ({ ...p, isActive: d.checked }))} /></Field>
         </div>
@@ -1661,75 +2063,101 @@ function App() {
           <Button onClick={resetTemplateForm}>Clear</Button>
           <Button disabled={!templateForm.id} onClick={deleteTemplate}>Delete</Button>
         </div>
-      </Card>
+      </div>
     </div>
   )
 
   return (
-    <FluentProvider theme={theme} className={s.root}>
-      <div className={s.layout}>
-        <aside className={s.sidebar}>
-          <Title2>Project Planner</Title2>
-          <Switch checked={darkMode} onChange={(_, data) => setDarkMode(data.checked)} label="Dark mode" />
-          <Button appearance="primary" onClick={loadData} disabled={loading}>{loading ? 'Refreshing...' : 'Refresh Data'}</Button>
-          <Text size={200} weight="semibold">Projects</Text>
-          <div className={s.projectList}>
-            {projects.map((project) => (
+    <FluentProvider theme={theme}>
+      <div className={mergeClasses(s.root, !darkMode ? 'light-mode' : undefined)}>
+        <div className={s.layout}>
+          <aside className={s.sidebar}>
+            <div className={s.sidebarLogo}>
+              <span className={s.logoText}>Project Planner</span>
+              <span className={s.logoSub}>◆ Dataverse · Live</span>
+            </div>
+
+            <div className={s.sidebarBody}>
+              <div className={s.sidebarSection}>
+                <span className={s.sidebarSectionLabel}>Context</span>
+                <button
+                  className={mergeClasses(s.projBtn, !selectedProjectId ? s.projBtnActive : undefined)}
+                  onClick={() => setSelectedProjectId('')}
+                >
+                  All projects
+                </button>
+                {projects.map((project) => (
+                  <button
+                    key={project.vibe_projectid}
+                    className={mergeClasses(s.projBtn, selectedProjectId === project.vibe_projectid ? s.projBtnActive : undefined)}
+                    onClick={() => setSelectedProjectId(project.vibe_projectid)}
+                  >
+                    {project.vibe_name}
+                  </button>
+                ))}
+              </div>
+
+              {NAV_GROUPS.map((group) => (
+                <div key={group.label} className={s.sidebarSection}>
+                  <span className={s.sidebarSectionLabel}>{group.label}</span>
+                  {group.items.map((item) => (
+                    <button
+                      key={item.value}
+                      className={mergeClasses(s.navBtn, activeTab === item.value ? s.navBtnActive : undefined)}
+                      onClick={() => setActiveTab(item.value)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            <div className={s.sidebarFooter}>
+              <Switch checked={darkMode} onChange={(_, d) => setDarkMode(d.checked)} label="Dark mode" />
               <Button
-                key={project.vibe_projectid}
-                className={selectedProjectId === project.vibe_projectid ? s.selectedProject : undefined}
-                appearance={selectedProjectId === project.vibe_projectid ? 'primary' : 'secondary'}
-                onClick={() => setSelectedProjectId(project.vibe_projectid)}
+                appearance="primary"
+                onClick={loadData}
+                disabled={loading}
+                style={{ width: '100%' }}
               >
-                {project.vibe_name}
+                {loading ? 'Loading…' : 'Refresh Data'}
               </Button>
-            ))}
-          </div>
-          <Button appearance={selectedProjectId ? 'secondary' : 'primary'} onClick={() => setSelectedProjectId('')}>Show all projects</Button>
-          <TabList vertical selectedValue={activeTab} onTabSelect={onTabSelect} className={s.tabList}>
-            <Tab value="home">Project List</Tab>
-            <Tab value="portfolio">Portfolio Dashboard</Tab>
-            <Tab value="overview">Overview</Tab>
-            <Tab value="tasks">Phases & Tasks</Tab>
-            <Tab value="team">Team</Tab>
-            <Tab value="planning">Planning</Tab>
-            <Tab value="budget">Budget</Tab>
-            <Tab value="raid">RAID Log</Tab>
-            <Tab value="deliverables">Deliverables</Tab>
-            <Tab value="time">Time Entry</Tab>
-            <Tab value="communication">Communication</Tab>
-            <Tab value="documents">Documents</Tab>
-            <Tab value="stakeholders">Stakeholders</Tab>
-            <Tab value="settings">Settings</Tab>
-          </TabList>
-        </aside>
-        <main className={s.content}>
-          <div className={s.topBar}>
-            <div>
-              <Title2>{activeTab === 'home' ? 'Project List' : activeTab[0].toUpperCase() + activeTab.slice(1)}</Title2>
-              <Text size={200}>Context: {currentProjectName}</Text>
             </div>
-          </div>
-          {notice && (
-            <div className={`${s.notice} ${notice.type === 'success' ? s.success : s.error}`}>
-              {notice.message}
+          </aside>
+
+          <main className={s.content}>
+            <div className={s.pageHeader}>
+              <div>
+                <div className={s.pageTitle}>{TAB_LABELS[activeTab]}</div>
+                <div className={s.pageCtx}>
+                  {currentProjectName}{loading ? ' · Loading…' : ''}
+                </div>
+              </div>
             </div>
-          )}
-          {activeTab === 'home' && renderHome()}
-          {activeTab === 'portfolio' && renderPortfolio()}
-          {activeTab === 'overview' && renderOverview()}
-          {activeTab === 'tasks' && renderTasks()}
-          {activeTab === 'team' && renderTeam()}
-          {activeTab === 'planning' && renderPlanning()}
-          {activeTab === 'budget' && renderBudget()}
-          {activeTab === 'raid' && renderRaid()}
-          {activeTab === 'deliverables' && renderDeliverables()}
-          {activeTab === 'time' && renderTime()}
-          {activeTab === 'communication' && renderCommunication()}
-          {activeTab === 'documents' && renderDocuments()}
-          {activeTab === 'stakeholders' && renderStakeholders()}
-          {activeTab === 'settings' && renderSettings()}
-        </main>
+
+            {notice && (
+              <div className={mergeClasses(s.notice, notice.type === 'success' ? s.noticeSuccess : s.noticeError)}>
+                {notice.message}
+              </div>
+            )}
+
+            {activeTab === 'home' && renderHome()}
+            {activeTab === 'portfolio' && renderPortfolio()}
+            {activeTab === 'overview' && renderOverview()}
+            {activeTab === 'tasks' && renderTasks()}
+            {activeTab === 'team' && renderTeam()}
+            {activeTab === 'planning' && renderPlanning()}
+            {activeTab === 'budget' && renderBudget()}
+            {activeTab === 'raid' && renderRaid()}
+            {activeTab === 'deliverables' && renderDeliverables()}
+            {activeTab === 'time' && renderTime()}
+            {activeTab === 'communication' && renderCommunication()}
+            {activeTab === 'documents' && renderDocuments()}
+            {activeTab === 'stakeholders' && renderStakeholders()}
+            {activeTab === 'settings' && renderSettings()}
+          </main>
+        </div>
       </div>
     </FluentProvider>
   )
