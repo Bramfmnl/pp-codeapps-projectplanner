@@ -26,12 +26,13 @@
 - [x] Rebuilt app with Fluent UI v9 layout and theme toggle
 - [x] Implemented CRUD flows across core tabs (projects, tasks, team, budget lines, risks, issues, deliverables, time entries, communication items, roles, templates)
 - [x] Deployed updated UX with `pac code push`
+- [x] Deployed redesigned nav/theme with `/home/bram/.dotnet/tools/pac code push` (v2.8.1)
 
 ## Deployment Status
 - Deployment now succeeds in environment `26330d9d-6100-e621-8f55-35411fe4305a`.
 - Current app URL:
   - https://apps.powerapps.com/play/e/26330d9d-6100-e621-8f55-35411fe4305a/app/8f35edee-f6d4-4bc3-8280-3d5fbca42368
-  - Latest deployment timestamp hint: `sourcetime=1781281460522`
+  - Latest deployment timestamp hint: `sourcetime=1781293960939`
 
 ## Dataverse Tables Connected
 - `vibe_projectrole`
