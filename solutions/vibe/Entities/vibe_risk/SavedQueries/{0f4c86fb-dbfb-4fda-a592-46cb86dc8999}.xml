@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{0f4c86fb-dbfb-4fda-a592-46cb86dc8999}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="vibe_title" select="1" icon="1" preview="1">
+        <row name="result" id="vibe_riskid">
+          <cell name="vibe_title" width="300" />
+          <cell name="createdon" width="125" />
+          <cell name="vibe_description" width="150" />
+          <cell name="vibe_probability" width="150" />
+          <cell name="vibe_impact" width="150" />
+          <cell name="vibe_riskscore" width="150" />
+          <cell name="vibe_mitigationplan" width="150" />
+          <cell name="vibe_riskstatus" width="150" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>0</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="vibe_risk">
+          <attribute name="vibe_riskid" />
+          <attribute name="vibe_title" />
+          <attribute name="createdon" />
+          <order attribute="vibe_title" descending="false" />
+          <filter type="and">
+            <condition attribute="statecode" operator="eq" value="0" />
+          </filter>
+          <attribute name="vibe_description" />
+          <attribute name="vibe_probability" />
+          <attribute name="vibe_impact" />
+          <attribute name="vibe_riskscore" />
+          <attribute name="vibe_mitigationplan" />
+          <attribute name="vibe_riskstatus" />
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Active Risks" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

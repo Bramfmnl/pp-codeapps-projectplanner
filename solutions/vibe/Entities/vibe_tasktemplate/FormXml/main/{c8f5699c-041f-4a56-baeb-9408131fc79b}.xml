@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{c8f5699c-041f-4a56-baeb-9408131fc79b}</formid>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{f8c44c6c-b367-464c-93f3-b26f05c50e3c}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{31cecfad-e39f-4310-9318-4c5a231dc35c}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{72b12a02-5e57-4908-9960-e9afcbda8d4f}">
+                        <labels>
+                          <label description="name" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="vibe_name" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{e5f0ff09-e2e1-409d-a735-6dac2a8a57c4}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{47fda2a8-a779-4e2f-a92f-7b1e7c0a4fee}">
+                        <labels>
+                          <label description="defaultestimatedhours" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_defaultestimatedhours" classid="{c3efe0c3-0ec6-42be-8349-cbd9079dfd8e}" datafieldname="vibe_defaultestimatedhours" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{63c3fb52-7e7a-4b07-93ae-771c3557c2fe}">
+                        <labels>
+                          <label description="defaultpriority" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_defaultpriority" classid="{3ef39988-22bb-4f0b-bbbe-64b5a3748aee}" datafieldname="vibe_defaultpriority" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{cbc992d9-e6f9-4c1c-9a98-0eba384cf835}">
+                        <labels>
+                          <label description="order" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_order" classid="{c6d124ca-7eda-4a60-aea9-7fb8d318b68f}" datafieldname="vibe_order" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="A form for this entity." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

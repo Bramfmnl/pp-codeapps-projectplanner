@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{e3d274f2-d1a8-4fe7-9594-c64303ec331e}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="vibe_title" select="1" icon="1" preview="1">
+        <row name="result" id="vibe_issueid">
+          <cell name="vibe_title" width="300" />
+          <cell name="createdon" width="125" />
+          <cell name="vibe_description" width="150" />
+          <cell name="vibe_severity" width="150" />
+          <cell name="vibe_issuestatus" width="150" />
+          <cell name="vibe_resolution" width="150" />
+          <cell name="vibe_impactonbudget" width="150" />
+          <cell name="vibe_impactontimelinedays" width="150" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>0</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="vibe_issue">
+          <attribute name="vibe_issueid" />
+          <attribute name="vibe_title" />
+          <attribute name="createdon" />
+          <order attribute="vibe_title" descending="false" />
+          <filter type="and">
+            <condition attribute="statecode" operator="eq" value="0" />
+          </filter>
+          <attribute name="vibe_description" />
+          <attribute name="vibe_severity" />
+          <attribute name="vibe_issuestatus" />
+          <attribute name="vibe_resolution" />
+          <attribute name="vibe_impactonbudget" />
+          <attribute name="vibe_impactontimelinedays" />
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Active Issues" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

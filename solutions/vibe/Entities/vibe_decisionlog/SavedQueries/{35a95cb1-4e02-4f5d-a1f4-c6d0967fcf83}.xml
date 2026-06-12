@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{35a95cb1-4e02-4f5d-a1f4-c6d0967fcf83}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="vibe_title" select="1" icon="1" preview="1">
+        <row name="result" id="vibe_decisionlogid">
+          <cell name="vibe_title" width="300" />
+          <cell name="createdon" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>1</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="vibe_decisionlog">
+          <attribute name="vibe_decisionlogid" />
+          <attribute name="vibe_title" />
+          <attribute name="createdon" />
+          <order attribute="vibe_title" descending="false" />
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Decision Log Advanced Find View" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

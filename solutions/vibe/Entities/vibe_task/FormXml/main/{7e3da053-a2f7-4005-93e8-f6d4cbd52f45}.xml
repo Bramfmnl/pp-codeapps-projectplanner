@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{7e3da053-a2f7-4005-93e8-f6d4cbd52f45}</formid>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{059212e1-4174-4b91-8ebb-f88a99b5cf84}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{69f6b7ff-bef3-4914-a23c-6fbfdf3c2803}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{358e90a8-3bd7-4ec6-8269-2647b8206dd2}">
+                        <labels>
+                          <label description="name" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="vibe_name" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{e3ff0ebd-16ea-4d84-b4c7-5bb9bb6ac7b8}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{66aeb2ce-9a4a-42fd-8d63-5f31cb2a2818}">
+                        <labels>
+                          <label description="taskstatus" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_taskstatus" classid="{3ef39988-22bb-4f0b-bbbe-64b5a3748aee}" datafieldname="vibe_taskstatus" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{0e274e1b-a44f-4ea7-b772-1b22cc2ecc3b}">
+                        <labels>
+                          <label description="priority" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_priority" classid="{3ef39988-22bb-4f0b-bbbe-64b5a3748aee}" datafieldname="vibe_priority" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{73ddf286-15a9-4365-8d80-b2a0a34e815d}">
+                        <labels>
+                          <label description="startdate" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_startdate" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="vibe_startdate" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{c14dfc11-4f84-4d70-a4b3-7066d85b1d99}">
+                        <labels>
+                          <label description="duedate" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_duedate" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="vibe_duedate" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{997b5607-1aa2-431e-b44c-72aa2103f636}">
+                        <labels>
+                          <label description="estimatedhours" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_estimatedhours" classid="{c3efe0c3-0ec6-42be-8349-cbd9079dfd8e}" datafieldname="vibe_estimatedhours" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{6e4f3443-9a30-4737-adcb-2bc6b16063bd}">
+                        <labels>
+                          <label description="actualhours" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_actualhours" classid="{c3efe0c3-0ec6-42be-8349-cbd9079dfd8e}" datafieldname="vibe_actualhours" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{61a9da5b-f168-4b21-95b3-0969b9bd1f33}">
+                        <labels>
+                          <label description="estimatedcost" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_estimatedcost" classid="{c3efe0c3-0ec6-42be-8349-cbd9079dfd8e}" datafieldname="vibe_estimatedcost" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{6e0857ee-aecf-4c94-82c6-51e1eefabb31}">
+                        <labels>
+                          <label description="actualcost" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_actualcost" classid="{c3efe0c3-0ec6-42be-8349-cbd9079dfd8e}" datafieldname="vibe_actualcost" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{f2451892-1d0b-46bd-8810-344978f239f3}">
+                        <labels>
+                          <label description="description" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_description" classid="{4273edbd-ac1d-40d3-9fb2-095c621b552d}" datafieldname="vibe_description" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{c678d567-9b2d-4cfa-8f94-29ff2e98c3c8}">
+                        <labels>
+                          <label description="ismilestone" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_ismilestone" classid="{67fac785-cd58-4f9f-abb3-4b7ddc6ed5ed}" datafieldname="vibe_ismilestone" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="A form for this entity." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

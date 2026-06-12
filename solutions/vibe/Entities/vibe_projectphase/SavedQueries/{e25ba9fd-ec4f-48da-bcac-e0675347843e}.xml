@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{e25ba9fd-ec4f-48da-bcac-e0675347843e}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="vibe_name" select="1" icon="1" preview="1">
+        <row name="result" id="vibe_projectphaseid">
+          <cell name="vibe_name" width="300" />
+          <cell name="createdon" width="125" />
+          <cell name="vibe_order" width="150" />
+          <cell name="vibe_startdate" width="150" />
+          <cell name="vibe_enddate" width="150" />
+          <cell name="vibe_requiresapproval" width="150" />
+          <cell name="vibe_approvalstatus" width="150" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>0</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="vibe_projectphase">
+          <attribute name="vibe_projectphaseid" />
+          <attribute name="vibe_name" />
+          <attribute name="createdon" />
+          <order attribute="vibe_name" descending="false" />
+          <filter type="and">
+            <condition attribute="statecode" operator="eq" value="0" />
+          </filter>
+          <attribute name="vibe_order" />
+          <attribute name="vibe_startdate" />
+          <attribute name="vibe_enddate" />
+          <attribute name="vibe_requiresapproval" />
+          <attribute name="vibe_approvalstatus" />
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Active Project Phases" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

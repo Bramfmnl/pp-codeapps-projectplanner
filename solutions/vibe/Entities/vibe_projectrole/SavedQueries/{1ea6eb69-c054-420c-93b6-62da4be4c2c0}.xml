@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{1ea6eb69-c054-420c-93b6-62da4be4c2c0}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="vibe_name" select="1" icon="1" preview="1">
+        <row name="result" id="vibe_projectroleid">
+          <cell name="vibe_name" width="300" />
+          <cell name="createdon" width="125" />
+          <cell name="vibe_description" width="150" />
+          <cell name="vibe_defaulthourlyrate" width="150" />
+          <cell name="vibe_isstakeholderrole" width="150" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>0</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="vibe_projectrole">
+          <attribute name="vibe_projectroleid" />
+          <attribute name="vibe_name" />
+          <attribute name="createdon" />
+          <order attribute="vibe_name" descending="false" />
+          <filter type="and">
+            <condition attribute="statecode" operator="eq" value="0" />
+          </filter>
+          <attribute name="vibe_description" />
+          <attribute name="vibe_defaulthourlyrate" />
+          <attribute name="vibe_isstakeholderrole" />
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Active Project Roles" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{b8a58228-cd91-4252-89f2-4a6b70947245}</formid>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{8a557673-197b-4bcc-9ebc-842ea9b0bb5e}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{3d9a2971-a74e-492c-b67f-ab85b8cdb9b3}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{b4687ac4-1b01-452a-8b7b-91c3b8073442}">
+                        <labels>
+                          <label description="name" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="vibe_name" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{205a3b65-5f93-4ab4-abe2-7271381223d3}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{2bc4c691-d9b6-4e33-ac7d-22e196f7bd78}">
+                        <labels>
+                          <label description="timestamp" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_timestamp" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="vibe_timestamp" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{bece5166-c8b3-4d33-89e6-649aac4c919b}">
+                        <labels>
+                          <label description="eventtype" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_eventtype" classid="{3ef39988-22bb-4f0b-bbbe-64b5a3748aee}" datafieldname="vibe_eventtype" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{e2839c01-a41d-4af9-a9b7-99571b29d881}">
+                        <labels>
+                          <label description="description" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_description" classid="{4273edbd-ac1d-40d3-9fb2-095c621b552d}" datafieldname="vibe_description" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{fb985297-a7ad-483b-8312-a9689756e55d}">
+                        <labels>
+                          <label description="relatedrecordurl" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_relatedrecordurl" classid="{4273edbd-ac1d-40d3-9fb2-095c621b552d}" datafieldname="vibe_relatedrecordurl" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="A form for this entity." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

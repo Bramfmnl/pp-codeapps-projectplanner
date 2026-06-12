@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>0</isdefault>
+    <savedqueryid>{e11ca743-6ef4-4dd0-af0b-0ed8bb08dadd}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="vibe_description" select="1" icon="1" preview="1">
+        <row name="result" id="vibe_meetingactionitemid">
+          <cell name="vibe_description" width="300" />
+          <cell name="createdon" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>0</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="vibe_meetingactionitem">
+          <attribute name="vibe_meetingactionitemid" />
+          <attribute name="vibe_description" />
+          <attribute name="createdon" />
+          <order attribute="vibe_description" descending="false" />
+          <filter type="and">
+            <condition attribute="statecode" operator="eq" value="1" />
+          </filter>
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Inactive Meeting Action Items" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

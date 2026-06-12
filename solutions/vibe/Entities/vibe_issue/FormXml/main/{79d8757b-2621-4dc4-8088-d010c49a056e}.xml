@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{79d8757b-2621-4dc4-8088-d010c49a056e}</formid>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{8234d237-45a3-4fc0-abe1-2e007d6460b0}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{a3fd44ac-b93c-46f4-8913-925f856057cd}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{425ff782-27d6-44f0-ba47-a2399d6c5881}">
+                        <labels>
+                          <label description="title" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_title" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="vibe_title" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{72b5ab43-e124-45a5-8f9a-f234b660b889}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{7642259c-120f-4710-b856-f6144876ac08}">
+                        <labels>
+                          <label description="description" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_description" classid="{4273edbd-ac1d-40d3-9fb2-095c621b552d}" datafieldname="vibe_description" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{1469b636-e858-410e-834d-eeaf72f32bc5}">
+                        <labels>
+                          <label description="severity" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_severity" classid="{3ef39988-22bb-4f0b-bbbe-64b5a3748aee}" datafieldname="vibe_severity" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{3ffaa508-00dc-4d55-8067-dd055ac38e57}">
+                        <labels>
+                          <label description="issuestatus" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_issuestatus" classid="{3ef39988-22bb-4f0b-bbbe-64b5a3748aee}" datafieldname="vibe_issuestatus" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{51bab9f2-1261-4418-af00-1fb6f3344cc7}">
+                        <labels>
+                          <label description="resolution" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_resolution" classid="{4273edbd-ac1d-40d3-9fb2-095c621b552d}" datafieldname="vibe_resolution" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{dece43be-bb02-4fa5-b3f5-a61f4f40e4b8}">
+                        <labels>
+                          <label description="impactonbudget" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_impactonbudget" classid="{c3efe0c3-0ec6-42be-8349-cbd9079dfd8e}" datafieldname="vibe_impactonbudget" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{0f77d0df-b6e2-44a2-8fc7-e1fc4315277d}">
+                        <labels>
+                          <label description="impactontimelinedays" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_impactontimelinedays" classid="{c6d124ca-7eda-4a60-aea9-7fb8d318b68f}" datafieldname="vibe_impactontimelinedays" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="A form for this entity." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

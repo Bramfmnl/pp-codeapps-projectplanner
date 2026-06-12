@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{5fdfeb0a-a06f-4711-a757-b71142ae84bd}</formid>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{32f19a88-b4e8-4234-b89f-433eed9730b7}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{74c82015-e2f0-4903-8378-a4ea579ea4c8}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{03b3e85f-8193-4995-92f0-c231dc3a0a02}">
+                        <labels>
+                          <label description="name" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="vibe_name" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{319ed4d5-aa64-409b-8501-8278f1e9c489}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{7310b229-1efe-49dc-95fd-ff60fb746f7b}">
+                        <labels>
+                          <label description="order" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_order" classid="{c6d124ca-7eda-4a60-aea9-7fb8d318b68f}" datafieldname="vibe_order" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{12f2d058-b270-4b99-9423-7fc4df05815e}">
+                        <labels>
+                          <label description="startdate" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_startdate" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="vibe_startdate" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{0c1ece9f-d179-4778-82cb-1eea88b0fd38}">
+                        <labels>
+                          <label description="enddate" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_enddate" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="vibe_enddate" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{0cd9991b-2d71-4372-b257-341775a92da9}">
+                        <labels>
+                          <label description="requiresapproval" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_requiresapproval" classid="{67fac785-cd58-4f9f-abb3-4b7ddc6ed5ed}" datafieldname="vibe_requiresapproval" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{9284744e-2009-4ec4-b83a-ededd78d282d}">
+                        <labels>
+                          <label description="approvalstatus" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_approvalstatus" classid="{3ef39988-22bb-4f0b-bbbe-64b5a3748aee}" datafieldname="vibe_approvalstatus" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="A form for this entity." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

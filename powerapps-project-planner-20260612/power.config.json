@@ -1,0 +1,136 @@
+{
+  "version": "1.0",
+  "appId": "8f35edee-f6d4-4bc3-8280-3d5fbca42368",
+  "appDisplayName": "Project Planner",
+  "region": "prod",
+  "appType": "CodeApp",
+  "environmentId": "26330d9d-6100-e621-8f55-35411fe4305a",
+  "description": " ",
+  "buildPath": "./dist",
+  "buildEntryPoint": "index.html",
+  "localAppUrl": "http://localhost:3000",
+  "logoPath": "Default",
+  "connectionReferences": {},
+  "databaseReferences": {
+    "default.cds": {
+      "dataSources": {
+        "projectroles": {
+          "entitySetName": "vibe_projectroles",
+          "logicalName": "vibe_projectrole",
+          "isHidden": false
+        },
+        "projecttemplates": {
+          "entitySetName": "vibe_projecttemplates",
+          "logicalName": "vibe_projecttemplate",
+          "isHidden": false
+        },
+        "phasetemplates": {
+          "entitySetName": "vibe_phasetemplates",
+          "logicalName": "vibe_phasetemplate",
+          "isHidden": false
+        },
+        "roletemplates": {
+          "entitySetName": "vibe_roletemplates",
+          "logicalName": "vibe_roletemplate",
+          "isHidden": false
+        },
+        "tasktemplates": {
+          "entitySetName": "vibe_tasktemplates",
+          "logicalName": "vibe_tasktemplate",
+          "isHidden": false
+        },
+        "projects": {
+          "entitySetName": "vibe_projects",
+          "logicalName": "vibe_project",
+          "isHidden": false
+        },
+        "projectphases": {
+          "entitySetName": "vibe_projectphases",
+          "logicalName": "vibe_projectphase",
+          "isHidden": false
+        },
+        "projectteammembers": {
+          "entitySetName": "vibe_projectteammembers",
+          "logicalName": "vibe_projectteammember",
+          "isHidden": false
+        },
+        "budgetlines": {
+          "entitySetName": "vibe_budgetlines",
+          "logicalName": "vibe_budgetline",
+          "isHidden": false
+        },
+        "budgetchangerequests": {
+          "entitySetName": "vibe_budgetchangerequests",
+          "logicalName": "vibe_budgetchangerequest",
+          "isHidden": false
+        },
+        "invoices": {
+          "entitySetName": "vibe_invoices",
+          "logicalName": "vibe_invoice",
+          "isHidden": false
+        },
+        "risks": {
+          "entitySetName": "vibe_risks",
+          "logicalName": "vibe_risk",
+          "isHidden": false
+        },
+        "issues": {
+          "entitySetName": "vibe_issues",
+          "logicalName": "vibe_issue",
+          "isHidden": false
+        },
+        "decisionlogs": {
+          "entitySetName": "vibe_decisionlogs",
+          "logicalName": "vibe_decisionlog",
+          "isHidden": false
+        },
+        "deliverables": {
+          "entitySetName": "vibe_deliverables",
+          "logicalName": "vibe_deliverable",
+          "isHidden": false
+        },
+        "activityfeedentrys": {
+          "entitySetName": "vibe_activityfeedentries",
+          "logicalName": "vibe_activityfeedentry",
+          "isHidden": false
+        },
+        "tasks": {
+          "entitySetName": "vibe_tasks",
+          "logicalName": "vibe_task",
+          "isHidden": false
+        },
+        "resourceallocations": {
+          "entitySetName": "vibe_resourceallocations",
+          "logicalName": "vibe_resourceallocation",
+          "isHidden": false
+        },
+        "timeentrys": {
+          "entitySetName": "vibe_timeentries",
+          "logicalName": "vibe_timeentry",
+          "isHidden": false
+        },
+        "meetingnotes": {
+          "entitySetName": "vibe_meetingnotes",
+          "logicalName": "vibe_meetingnote",
+          "isHidden": false
+        },
+        "taskchecklistitems": {
+          "entitySetName": "vibe_taskchecklistitems",
+          "logicalName": "vibe_taskchecklistitem",
+          "isHidden": false
+        },
+        "meetingattendees": {
+          "entitySetName": "vibe_meetingattendees",
+          "logicalName": "vibe_meetingattendee",
+          "isHidden": false
+        },
+        "meetingactionitems": {
+          "entitySetName": "vibe_meetingactionitems",
+          "logicalName": "vibe_meetingactionitem",
+          "isHidden": false
+        }
+      },
+      "environmentVariableName": ""
+    }
+  }
+}

@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{db7d8c83-3325-4ad8-be91-b2a07d669814}</formid>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{84e6637c-7b1f-4d59-8fa3-a024d6eb3b56}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{f7e14da7-1d75-4ac2-b3d4-d8d2d7dcc045}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{3c3982d2-57fb-44f2-8705-56b10f50aab3}">
+                        <labels>
+                          <label description="name" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="vibe_name" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{d28abe21-a095-43f1-b166-1e8353fcb3c3}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{2bbdc06e-e61b-420c-8cdb-d30e439e4608}">
+                        <labels>
+                          <label description="hourlyrate" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_hourlyrate" classid="{c3efe0c3-0ec6-42be-8349-cbd9079dfd8e}" datafieldname="vibe_hourlyrate" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{0bf2a21a-d063-4943-859c-8b804a2fc2cc}">
+                        <labels>
+                          <label description="allocationpercentage" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_allocationpercentage" classid="{c6d124ca-7eda-4a60-aea9-7fb8d318b68f}" datafieldname="vibe_allocationpercentage" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{e05fb5dd-a7cb-4129-b492-3dc4fa6af30c}">
+                        <labels>
+                          <label description="startdate" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_startdate" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="vibe_startdate" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{6bdd108c-75cc-48c8-9135-2b21adcc01c6}">
+                        <labels>
+                          <label description="enddate" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_enddate" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="vibe_enddate" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{2b572b0e-9acf-4f99-86cd-b374561e6a56}">
+                        <labels>
+                          <label description="isactive" languagecode="1033" />
+                        </labels>
+                        <control id="vibe_isactive" classid="{67fac785-cd58-4f9f-abb3-4b7ddc6ed5ed}" datafieldname="vibe_isactive" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="A form for this entity." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

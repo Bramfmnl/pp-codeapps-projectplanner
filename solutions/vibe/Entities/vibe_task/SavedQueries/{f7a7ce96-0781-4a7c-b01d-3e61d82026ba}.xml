@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{f7a7ce96-0781-4a7c-b01d-3e61d82026ba}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="vibe_name" select="1" icon="1" preview="1">
+        <row name="result" id="vibe_taskid">
+          <cell name="vibe_name" width="300" />
+          <cell name="createdon" width="125" />
+          <cell name="vibe_taskstatus" width="150" />
+          <cell name="vibe_priority" width="150" />
+          <cell name="vibe_startdate" width="150" />
+          <cell name="vibe_duedate" width="150" />
+          <cell name="vibe_estimatedhours" width="150" />
+          <cell name="vibe_actualhours" width="150" />
+          <cell name="vibe_estimatedcost" width="150" />
+          <cell name="vibe_actualcost" width="150" />
+          <cell name="vibe_description" width="150" />
+          <cell name="vibe_ismilestone" width="150" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>0</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="vibe_task">
+          <attribute name="vibe_taskid" />
+          <attribute name="vibe_name" />
+          <attribute name="createdon" />
+          <order attribute="vibe_name" descending="false" />
+          <filter type="and">
+            <condition attribute="statecode" operator="eq" value="0" />
+          </filter>
+          <attribute name="vibe_taskstatus" />
+          <attribute name="vibe_priority" />
+          <attribute name="vibe_startdate" />
+          <attribute name="vibe_duedate" />
+          <attribute name="vibe_estimatedhours" />
+          <attribute name="vibe_actualhours" />
+          <attribute name="vibe_estimatedcost" />
+          <attribute name="vibe_actualcost" />
+          <attribute name="vibe_description" />
+          <attribute name="vibe_ismilestone" />
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Active Tasks" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>
