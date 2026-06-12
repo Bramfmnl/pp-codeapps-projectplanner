@@ -4,19 +4,25 @@ import type { Vibe_tasks } from '../../generated/models/Vibe_tasksModel'
 import { Vibe_tasksvibe_priority, Vibe_tasksvibe_taskstatus } from '../../generated/models/Vibe_tasksModel'
 import type { Vibe_projects } from '../../generated/models/Vibe_projectsModel'
 import type { Vibe_projectphases } from '../../generated/models/Vibe_projectphasesModel'
+import type { Vibe_projectteammembers } from '../../generated/models/Vibe_projectteammembersModel'
 import { Avatar } from '../ui/Avatar'
 import { Badge } from '../ui/Badge'
 import { ProgressBar } from '../ui/ProgressBar'
 import { PriorityFlag } from '../ui/PriorityFlag'
 import { Modal } from '../ui/Modal'
+import { BoardView } from './BoardView'
+import { CalendarView } from './CalendarView'
+import { TimelineView } from './TimelineView'
+
+type TaskViewMode = 'spreadsheet' | 'board' | 'calendar' | 'timeline'
 
 const STATUS_ORDER = [100000001, 100000002, 100000000, 100000003] as const
 
 const STATUS_CONFIG: Record<number, { label: string; color: string }> = {
   100000001: { label: 'In Progress', color: '#f59e0b' },
-  100000002: { label: 'Blocked', color: '#ef4444' },
-  100000000: { label: 'To Do', color: '#94a3b8' },
-  100000003: { label: 'Done', color: '#10b981' },
+  100000002: { label: 'Blocked',     color: '#ef4444' },
+  100000000: { label: 'To Do',       color: '#94a3b8' },
+  100000003: { label: 'Done',        color: '#10b981' },
 }
 
 function computeProgress(actual?: number, estimated?: number): number {
@@ -41,12 +47,14 @@ interface TaskForm {
   name: string
   projectId: string
   dueDate: string
+  assigneeId: string
   priority: string
   status: string
 }
 
 interface Props {
   tasks: Vibe_tasks[]
+  teamMembers: Vibe_projectteammembers[]
   projects: Vibe_projects[]
   phases: Vibe_projectphases[]
   selectedProjectId: string
@@ -60,6 +68,7 @@ interface Props {
 
 export function TaskSpreadsheetView({
   tasks,
+  teamMembers,
   projects,
   phases,
   selectedProjectId,
@@ -74,6 +83,7 @@ export function TaskSpreadsheetView({
   const [collapsedPhases, setCollapsedPhases] = useState<Set<string>>(new Set())
   const [modalOpen, setModalOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [activeView, setActiveView] = useState<TaskViewMode>('spreadsheet')
 
   function toggleGroup(status: number) {
     setCollapsedGroups((prev) => {
@@ -105,6 +115,7 @@ export function TaskSpreadsheetView({
       name: task.vibe_name ?? '',
       projectId: task._vibe_projectid_value ?? '',
       dueDate: task.vibe_duedate?.slice(0, 10) ?? '',
+      assigneeId: task._vibe_assignedtoid_value ?? '',
       priority: String(task.vibe_priority ?? 100000001),
       status: String(task.vibe_taskstatus ?? 100000000),
     })
@@ -171,7 +182,6 @@ export function TaskSpreadsheetView({
     )
 
     if (!collapsed) {
-      // Group by phase
       const byPhase: Record<string, Vibe_tasks[]> = {}
       const noPhase: Vibe_tasks[] = []
       for (const t of groupTasks) {
@@ -182,12 +192,10 @@ export function TaskSpreadsheetView({
         }
       }
 
-      // Tasks with no phase first
       for (const t of noPhase) {
         rows.push(<TaskRow key={t.vibe_taskid} task={t} onEdit={openEdit} />)
       }
 
-      // Phase groups
       for (const [phaseId, phaseTasks] of Object.entries(byPhase)) {
         const phaseKey = `${statusCode}-${phaseId}`
         const phaseCollapsed = collapsedPhases.has(phaseKey)
@@ -215,17 +223,35 @@ export function TaskSpreadsheetView({
         }
       }
 
-      rows.push(
-        <tr key={`add-${statusCode}`} className="task-add-row">
-          <td colSpan={8}>
-            <button className="f-btn-ghost" onClick={() => openNew(statusCode)}>
-              <Plus size={11} /> Add task
-            </button>
-          </td>
-        </tr>,
-      )
+      if (groupTasks.length === 0) {
+        rows.push(
+          <tr key={`empty-${statusCode}`} className="task-empty-row">
+            <td colSpan={8}>
+              <span className="task-empty-label">No tasks · </span>
+              <button className="f-btn-ghost" style={{ fontSize: 11 }} onClick={() => openNew(statusCode)}>
+                + Add task
+              </button>
+            </td>
+          </tr>,
+        )
+      } else {
+        rows.push(
+          <tr key={`add-${statusCode}`} className="task-add-row">
+            <td colSpan={8}>
+              <button className="f-btn-ghost" onClick={() => openNew(statusCode)}>
+                <Plus size={11} /> Add task
+              </button>
+            </td>
+          </tr>,
+        )
+      }
     }
   }
+
+  const assignableMembers = useMemo(
+    () => teamMembers.filter((m) => !taskForm.projectId || m._vibe_projectid_value === taskForm.projectId),
+    [teamMembers, taskForm.projectId],
+  )
 
   return (
     <div className="f-panel" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -239,16 +265,28 @@ export function TaskSpreadsheetView({
       </div>
 
       <div className="task-view-tabs">
-        <button className="task-tab-btn active">
+        <button
+          className={`task-tab-btn${activeView === 'spreadsheet' ? ' active' : ''}`}
+          onClick={() => setActiveView('spreadsheet')}
+        >
           <Table2 size={13} /> Spreadsheet
         </button>
-        <button className="task-tab-btn" title="Coming soon">
+        <button
+          className={`task-tab-btn${activeView === 'timeline' ? ' active' : ''}`}
+          onClick={() => setActiveView('timeline')}
+        >
           <Calendar size={13} /> Timeline
         </button>
-        <button className="task-tab-btn" title="Coming soon">
+        <button
+          className={`task-tab-btn${activeView === 'calendar' ? ' active' : ''}`}
+          onClick={() => setActiveView('calendar')}
+        >
           <LayoutGrid size={13} /> Calendar
         </button>
-        <button className="task-tab-btn" title="Coming soon">
+        <button
+          className={`task-tab-btn${activeView === 'board' ? ' active' : ''}`}
+          onClick={() => setActiveView('board')}
+        >
           <Kanban size={13} /> Board
         </button>
       </div>
@@ -263,22 +301,51 @@ export function TaskSpreadsheetView({
         />
       </div>
 
-      <div className="task-table-wrap" style={{ flex: 1, overflowY: 'auto' }}>
-        <table className="task-table">
-          <thead>
-            <tr>
-              <th style={{ width: 32 }}></th>
-              <th>Task Name</th>
-              <th>Assignee</th>
-              <th>Due Date</th>
-              <th>Priority</th>
-              <th>Progress</th>
-              <th style={{ width: 40 }}></th>
-            </tr>
-          </thead>
-          <tbody>{rows}</tbody>
-        </table>
-      </div>
+      {activeView === 'spreadsheet' && (
+        <div className="task-table-wrap" style={{ flex: 1, overflowY: 'auto' }}>
+          <table className="task-table">
+            <thead>
+              <tr>
+                <th style={{ width: 32 }}></th>
+                <th>Task Name</th>
+                <th>Assignee</th>
+                <th>Due Date</th>
+                <th>Priority</th>
+                <th>Progress</th>
+                <th style={{ width: 40 }}></th>
+              </tr>
+            </thead>
+            <tbody>{rows}</tbody>
+          </table>
+        </div>
+      )}
+
+      {activeView === 'board' && (
+        <BoardView
+          tasks={filtered}
+          teamMembers={teamMembers}
+          phases={projectPhases}
+          phaseById={phaseById}
+          onEdit={openEdit}
+          onNew={openNew}
+        />
+      )}
+
+      {activeView === 'calendar' && (
+        <CalendarView
+          tasks={filtered}
+          onEdit={openEdit}
+          onNew={openNew}
+        />
+      )}
+
+      {activeView === 'timeline' && (
+        <TimelineView
+          tasks={filtered}
+          phases={projectPhases}
+          phaseById={phaseById}
+        />
+      )}
 
       <Modal
         open={modalOpen}
@@ -301,19 +368,29 @@ export function TaskSpreadsheetView({
               value={taskForm.projectId}
               onChange={(e) => setTaskForm((p) => ({ ...p, projectId: e.target.value }))}
             >
+              <option value="">— Select project —</option>
               {projects.map((p) => (
                 <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>
               ))}
             </select>
           </div>
           <div className="f-field">
-            <label className="f-label">Due date</label>
-            <input
-              className="f-input"
-              type="date"
-              value={taskForm.dueDate}
-              onChange={(e) => setTaskForm((p) => ({ ...p, dueDate: e.target.value }))}
-            />
+            <label className="f-label">Assignee</label>
+            <select
+              className="f-select"
+              value={taskForm.assigneeId}
+              onChange={(e) => setTaskForm((p) => ({ ...p, assigneeId: e.target.value }))}
+            >
+              <option value="">— Unassigned —</option>
+              {assignableMembers.map((m) => {
+                const name = m.vibe_contactidname ?? m.vibe_useridname ?? m.vibe_name ?? '(Unknown)'
+                return (
+                  <option key={m.vibe_projectteammemberid} value={m.vibe_projectteammemberid}>
+                    {name}
+                  </option>
+                )
+              })}
+            </select>
           </div>
           <div className="f-field">
             <label className="f-label">Status</label>
@@ -338,6 +415,15 @@ export function TaskSpreadsheetView({
                 <option key={k} value={k}>{v}</option>
               ))}
             </select>
+          </div>
+          <div className="f-field">
+            <label className="f-label">Due date</label>
+            <input
+              className="f-input"
+              type="date"
+              value={taskForm.dueDate}
+              onChange={(e) => setTaskForm((p) => ({ ...p, dueDate: e.target.value }))}
+            />
           </div>
         </div>
         <div className="modal-footer">

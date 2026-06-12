@@ -96,7 +96,7 @@ function App() {
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
 
   const [projectForm, setProjectForm] = useState({ id: '', name: '', startDate: '', endDate: '', totalBudget: '', templateId: '' })
-  const [taskForm, setTaskForm] = useState({ id: '', name: '', projectId: '', dueDate: '', priority: '100000001', status: '100000000' })
+  const [taskForm, setTaskForm] = useState({ id: '', name: '', projectId: '', dueDate: '', assigneeId: '', priority: '100000001', status: '100000000' })
   const [teamForm, setTeamForm] = useState({ id: '', name: '', projectId: '', roleId: '', allocation: '100', hourlyRate: '', startDate: '', endDate: '', isActive: true })
   const [budgetForm, setBudgetForm] = useState({ id: '', name: '', projectId: '', estimated: '', actual: '', category: '100000005' })
   const [riskForm, setRiskForm] = useState({ id: '', title: '', projectId: '', probability: '100000002', impact: '100000002', status: '100000000' })
@@ -161,7 +161,7 @@ function App() {
         templateResult, allocationResult, feedResult, invoiceResult, phaseResult,
       ] = await Promise.all([
         Vibe_projectsService.getAll({ select: ['vibe_projectid', 'vibe_name', 'vibe_startdate', 'vibe_enddate', 'vibe_totalbudget', 'vibe_budgetspent', 'vibe_budgetremaining', 'vibe_sharepointfolderurl', '_vibe_templatesourceid_value', 'statecode'], orderBy: ['vibe_name asc'], top: 1000 }),
-        Vibe_tasksService.getAll({ select: ['vibe_taskid', 'vibe_name', 'vibe_description', '_vibe_projectid_value', '_vibe_phaseid_value', 'vibe_phaseidname', '_vibe_assignedtoid_value', 'vibe_assignedtoidname', 'vibe_taskstatus', 'vibe_priority', 'vibe_duedate', 'vibe_actualhours', 'vibe_estimatedhours'], orderBy: ['vibe_name asc'], top: 1000 }),
+        Vibe_tasksService.getAll({ select: ['vibe_taskid', 'vibe_name', 'vibe_description', '_vibe_projectid_value', '_vibe_phaseid_value', 'vibe_phaseidname', '_vibe_assignedtoid_value', 'vibe_assignedtoidname', 'vibe_taskstatus', 'vibe_priority', 'vibe_duedate', 'vibe_startdate', 'vibe_actualhours', 'vibe_estimatedhours'], orderBy: ['vibe_name asc'], top: 1000 }),
         Vibe_projectteammembersService.getAll({ select: ['vibe_projectteammemberid', 'vibe_name', '_vibe_projectid_value', '_vibe_roleid_value', 'vibe_roleidname', 'vibe_allocationpercentage', 'vibe_hourlyrate', 'vibe_startdate', 'vibe_enddate', 'vibe_isactive', 'vibe_contactidname', 'vibe_useridname'], top: 1000 }),
         Vibe_budgetlinesService.getAll({ select: ['vibe_budgetlineid', 'vibe_name', '_vibe_projectid_value', 'vibe_estimatedamount', 'vibe_actualamount', 'vibe_category'], top: 1000 }),
         Vibe_risksService.getAll({ select: ['vibe_riskid', 'vibe_title', '_vibe_projectid_value', 'vibe_probability', 'vibe_impact', 'vibe_riskscore', 'vibe_riskstatus'], top: 1000 }),
@@ -204,7 +204,7 @@ function App() {
   }
 
   function resetProjectForm() { setProjectForm({ id: '', name: '', startDate: '', endDate: '', totalBudget: '', templateId: '' }) }
-  function resetTaskForm() { setTaskForm({ id: '', name: '', projectId: selectedProjectId, dueDate: '', priority: '100000001', status: '100000000' }) }
+  function resetTaskForm() { setTaskForm({ id: '', name: '', projectId: selectedProjectId, dueDate: '', assigneeId: '', priority: '100000001', status: '100000000' }) }
   function resetTeamForm() { setTeamForm({ id: '', name: '', projectId: selectedProjectId, roleId: '', allocation: '100', hourlyRate: '', startDate: '', endDate: '', isActive: true }) }
   function resetBudgetForm() { setBudgetForm({ id: '', name: '', projectId: selectedProjectId, estimated: '', actual: '', category: '100000005' }) }
   function resetRiskForm() { setRiskForm({ id: '', title: '', projectId: selectedProjectId, probability: '100000002', impact: '100000002', status: '100000000' }) }
@@ -230,7 +230,7 @@ function App() {
   }
 
   async function upsertTask() {
-    const payload: Partial<Vibe_tasksBase> = { vibe_name: taskForm.name, vibe_duedate: taskForm.dueDate || undefined, vibe_priority: Number(taskForm.priority) as Vibe_tasksBase['vibe_priority'], vibe_taskstatus: Number(taskForm.status) as Vibe_tasksBase['vibe_taskstatus'], 'vibe_projectid@odata.bind': taskForm.projectId ? bind('vibe_projects', taskForm.projectId) : undefined }
+    const payload: Partial<Vibe_tasksBase> = { vibe_name: taskForm.name, vibe_duedate: taskForm.dueDate || undefined, vibe_priority: Number(taskForm.priority) as Vibe_tasksBase['vibe_priority'], vibe_taskstatus: Number(taskForm.status) as Vibe_tasksBase['vibe_taskstatus'], 'vibe_projectid@odata.bind': taskForm.projectId ? bind('vibe_projects', taskForm.projectId) : undefined, 'vibe_assignedtoid@odata.bind': taskForm.assigneeId ? bind('vibe_projectteammembers', taskForm.assigneeId) : undefined }
     if (taskForm.id) await execute(async () => { await Vibe_tasksService.update(taskForm.id, payload) }, 'Task updated.')
     else await execute(async () => { await Vibe_tasksService.create(asCreatePayload<Omit<Vibe_tasksBase, 'vibe_taskid'>>(payload)) }, 'Task created.')
     resetTaskForm()
@@ -390,10 +390,40 @@ function App() {
         <main className="app-content">
           <div className="page-header">
             <div>
+              <div className="page-breadcrumb">
+                {selectedProjectId ? (
+                  <>
+                    <span className="breadcrumb-link" onClick={() => setSelectedProjectId('')}>Projects</span>
+                    <span className="breadcrumb-sep">›</span>
+                    <span className="breadcrumb-current">{currentProjectName}</span>
+                  </>
+                ) : (
+                  <span className="breadcrumb-current">Projects</span>
+                )}
+              </div>
               <div className="page-title">{TAB_LABELS[activeTab]}</div>
-              <div className="page-ctx">{currentProjectName}{loading ? ' · Loading…' : ''}</div>
             </div>
           </div>
+
+          {selectedProjectId && (() => {
+            const proj = projects.find((p) => p.vibe_projectid === selectedProjectId)
+            if (!proj) return null
+            return (
+              <div className="project-context-bar">
+                <span className="project-context-dot" style={{ background: proj.statecode === 0 ? 'var(--c-green)' : 'var(--c-text-3)' }} />
+                <span className="project-context-name">{proj.vibe_name}</span>
+                {proj.vibe_startdate && proj.vibe_enddate && (
+                  <span className="project-context-dates">
+                    {proj.vibe_startdate.slice(0, 10)} → {proj.vibe_enddate.slice(0, 10)}
+                  </span>
+                )}
+                <span className="project-context-divider" />
+                <span className="project-context-stat"><strong>{filteredTasks.length}</strong> tasks</span>
+                <span className="project-context-stat"><strong>{filteredTeam.length}</strong> members</span>
+                {loading && <span className="project-context-loading">Loading…</span>}
+              </div>
+            )
+          })()}
 
           {notice && (
             <div className={`f-notice f-notice-${notice.type}`}>{notice.message}</div>
@@ -433,6 +463,7 @@ function App() {
           {activeTab === 'tasks' && (
             <TaskSpreadsheetView
               tasks={filteredTasks}
+              teamMembers={filteredTeam}
               projects={projects}
               phases={phases}
               selectedProjectId={selectedProjectId}
