@@ -12,10 +12,12 @@ import type { Vibe_decisionlogs, Vibe_decisionlogsBase } from './generated/model
 import type { Vibe_meetingnotes, Vibe_meetingnotesBase } from './generated/models/Vibe_meetingnotesModel'
 import type { Vibe_projectroles, Vibe_projectrolesBase } from './generated/models/Vibe_projectrolesModel'
 import type { Vibe_projecttemplates, Vibe_projecttemplatesBase } from './generated/models/Vibe_projecttemplatesModel'
-import type { Vibe_resourceallocations } from './generated/models/Vibe_resourceallocationsModel'
+import type { Vibe_resourceallocations, Vibe_resourceallocationsBase } from './generated/models/Vibe_resourceallocationsModel'
 import type { Vibe_activityfeedentries } from './generated/models/Vibe_activityfeedentriesModel'
-import type { Vibe_invoices } from './generated/models/Vibe_invoicesModel'
-import type { Vibe_projectphases } from './generated/models/Vibe_projectphasesModel'
+import type { Vibe_invoices, Vibe_invoicesBase } from './generated/models/Vibe_invoicesModel'
+import type { Vibe_projectphases, Vibe_projectphasesBase } from './generated/models/Vibe_projectphasesModel'
+import type { Vibe_phasetemplates, Vibe_phasetemplatesBase } from './generated/models/Vibe_phasetemplatesModel'
+import type { Vibe_tasktemplates, Vibe_tasktemplatesBase } from './generated/models/Vibe_tasktemplatesModel'
 import { Vibe_projectsService } from './generated/services/Vibe_projectsService'
 import { Vibe_tasksService } from './generated/services/Vibe_tasksService'
 import { Vibe_projectteammembersService } from './generated/services/Vibe_projectteammembersService'
@@ -32,6 +34,8 @@ import { Vibe_resourceallocationsService } from './generated/services/Vibe_resou
 import { Vibe_activityfeedentriesService } from './generated/services/Vibe_activityfeedentriesService'
 import { Vibe_invoicesService } from './generated/services/Vibe_invoicesService'
 import { Vibe_projectphasesService } from './generated/services/Vibe_projectphasesService'
+import { Vibe_phasetemplatesService } from './generated/services/Vibe_phasetemplatesService'
+import { Vibe_tasktemplatesService } from './generated/services/Vibe_tasktemplatesService'
 import { Sidebar } from './components/layout/Sidebar'
 import { TaskSpreadsheetView } from './components/views/TaskSpreadsheetView'
 import { ProjectsView } from './components/views/ProjectsView'
@@ -48,7 +52,7 @@ import { DocumentsView } from './components/views/DocumentsView'
 import { StakeholdersView } from './components/views/StakeholdersView'
 import { SettingsView } from './components/views/SettingsView'
 
-type AppTab =
+export type AppTab =
   | 'home' | 'portfolio' | 'overview' | 'tasks' | 'team'
   | 'planning' | 'budget' | 'raid' | 'deliverables' | 'time'
   | 'communication' | 'documents' | 'stakeholders' | 'settings'
@@ -89,6 +93,8 @@ function App() {
   const [meetingNotes, setMeetingNotes] = useState<Vibe_meetingnotes[]>([])
   const [roles, setRoles] = useState<Vibe_projectroles[]>([])
   const [templates, setTemplates] = useState<Vibe_projecttemplates[]>([])
+  const [phaseTemplates, setPhaseTemplates] = useState<Vibe_phasetemplates[]>([])
+  const [taskTemplates, setTaskTemplates] = useState<Vibe_tasktemplates[]>([])
   const [allocations, setAllocations] = useState<Vibe_resourceallocations[]>([])
   const [feed, setFeed] = useState<Vibe_activityfeedentries[]>([])
   const [invoices, setInvoices] = useState<Vibe_invoices[]>([])
@@ -106,7 +112,11 @@ function App() {
   const [decisionForm, setDecisionForm] = useState({ id: '', title: '', projectId: '', madeById: '', date: '' })
   const [meetingForm, setMeetingForm] = useState({ id: '', title: '', projectId: '', date: '' })
   const [roleForm, setRoleForm] = useState({ id: '', name: '', defaultRate: '', isStakeholder: false })
-  const [templateForm, setTemplateForm] = useState({ id: '', name: '', isActive: true })
+  const [templateForm, setTemplateForm] = useState({ id: '', name: '', description: '', isActive: true })
+  const [invoiceForm, setInvoiceForm] = useState({ id: '', invoiceNumber: '', projectId: '', amount: '', dateIssued: '', dueDate: '', datePaid: '', notes: '' })
+  const [allocationForm, setAllocationForm] = useState({ id: '', name: '', projectId: '', teamMemberId: '', weekStartDate: '', plannedHours: '', actualHours: '' })
+  const [phaseTemplateForm, setPhaseTemplateForm] = useState({ id: '', name: '', order: '', defaultDurationDays: '', templateId: '' })
+  const [taskTemplateForm, setTaskTemplateForm] = useState({ id: '', name: '', order: '', defaultEstimatedHours: '', defaultPriority: '100000001', phaseTemplateId: '' })
 
   const projectById = useMemo(() => {
     const map: Record<string, string> = {}
@@ -140,6 +150,12 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadData() }, [])
 
+  useEffect(() => {
+    if (!notice || notice.type !== 'success') return
+    const t = setTimeout(() => setNotice(null), 4000)
+    return () => clearTimeout(t)
+  }, [notice])
+
   async function execute(action: () => Promise<void>, successMessage: string) {
     setNotice(null)
     try {
@@ -159,6 +175,7 @@ function App() {
         projectResult, taskResult, teamResult, budgetResult, riskResult, issueResult,
         deliverableResult, timeResult, decisionResult, meetingResult, roleResult,
         templateResult, allocationResult, feedResult, invoiceResult, phaseResult,
+        phaseTemplateResult, taskTemplateResult,
       ] = await Promise.all([
         Vibe_projectsService.getAll({ select: ['vibe_projectid', 'vibe_name', 'vibe_startdate', 'vibe_enddate', 'vibe_totalbudget', 'vibe_budgetspent', 'vibe_budgetremaining', 'vibe_sharepointfolderurl', '_vibe_templatesourceid_value', 'statecode'], orderBy: ['vibe_name asc'], top: 1000 }),
         Vibe_tasksService.getAll({ select: ['vibe_taskid', 'vibe_name', 'vibe_description', '_vibe_projectid_value', '_vibe_phaseid_value', 'vibe_phaseidname', '_vibe_assignedtoid_value', 'vibe_assignedtoidname', 'vibe_taskstatus', 'vibe_priority', 'vibe_duedate', 'vibe_startdate', 'vibe_actualhours', 'vibe_estimatedhours'], orderBy: ['vibe_name asc'], top: 1000 }),
@@ -171,11 +188,13 @@ function App() {
         Vibe_decisionlogsService.getAll({ select: ['vibe_decisionlogid', 'vibe_title', '_vibe_projectid_value', '_vibe_madebyid_value', 'vibe_madebyidname', 'vibe_date'], orderBy: ['vibe_date desc'], top: 1000 }),
         Vibe_meetingnotesService.getAll({ select: ['vibe_meetingnoteid', 'vibe_title', '_vibe_projectid_value', 'vibe_date'], orderBy: ['vibe_date desc'], top: 1000 }),
         Vibe_projectrolesService.getAll({ select: ['vibe_projectroleid', 'vibe_name', 'vibe_defaulthourlyrate', 'vibe_isstakeholderrole'], orderBy: ['vibe_name asc'], top: 1000 }),
-        Vibe_projecttemplatesService.getAll({ select: ['vibe_projecttemplateid', 'vibe_name', 'vibe_isactive'], orderBy: ['vibe_name asc'], top: 1000 }),
-        Vibe_resourceallocationsService.getAll({ select: ['vibe_resourceallocationid', 'vibe_name', '_vibe_projectid_value', 'vibe_projectteammemberidname', 'vibe_weekstartdate', 'vibe_plannedhours', 'vibe_actualhours'], top: 1000 }),
+        Vibe_projecttemplatesService.getAll({ select: ['vibe_projecttemplateid', 'vibe_name', 'vibe_description', 'vibe_isactive'], orderBy: ['vibe_name asc'], top: 1000 }),
+        Vibe_resourceallocationsService.getAll({ select: ['vibe_resourceallocationid', 'vibe_name', '_vibe_projectid_value', '_vibe_projectteammemberid_value', 'vibe_projectteammemberidname', 'vibe_weekstartdate', 'vibe_plannedhours', 'vibe_actualhours'], top: 1000 }),
         Vibe_activityfeedentriesService.getAll({ select: ['vibe_activityfeedentryid', 'vibe_timestamp', '_vibe_projectid_value', 'vibe_eventtype', 'vibe_description', 'vibe_actoridname'], orderBy: ['vibe_timestamp desc'], top: 200 }),
-        Vibe_invoicesService.getAll({ select: ['vibe_invoiceid', 'vibe_invoicenumber', '_vibe_projectid_value', 'vibe_amount', 'vibe_dateissued', 'vibe_duedate', 'vibe_datepaid'], top: 1000 }),
+        Vibe_invoicesService.getAll({ select: ['vibe_invoiceid', 'vibe_invoicenumber', '_vibe_projectid_value', 'vibe_amount', 'vibe_dateissued', 'vibe_duedate', 'vibe_datepaid', 'vibe_notes'], top: 1000 }),
         Vibe_projectphasesService.getAll({ select: ['vibe_projectphaseid', 'vibe_name', '_vibe_projectid_value', 'vibe_order'], orderBy: ['vibe_order asc'], top: 500 }),
+        Vibe_phasetemplatesService.getAll({ select: ['vibe_phasetemplateid', 'vibe_name', '_vibe_projecttemplateid_value', 'vibe_order', 'vibe_defaultdurationdays'], orderBy: ['vibe_order asc'], top: 500 }),
+        Vibe_tasktemplatesService.getAll({ select: ['vibe_tasktemplateid', 'vibe_name', '_vibe_phasetemplateid_value', 'vibe_order', 'vibe_defaultestimatedhours', 'vibe_defaultpriority'], orderBy: ['vibe_order asc'], top: 1000 }),
       ])
 
       setProjects(projectResult.data ?? [])
@@ -194,6 +213,8 @@ function App() {
       setFeed(feedResult.data ?? [])
       setInvoices(invoiceResult.data ?? [])
       setPhases(phaseResult.data ?? [])
+      setPhaseTemplates(phaseTemplateResult.data ?? [])
+      setTaskTemplates(taskTemplateResult.data ?? [])
 
       if (!selectedProjectId && (projectResult.data?.length ?? 0) > 0) {
         setSelectedProjectId(projectResult.data?.[0].vibe_projectid ?? '')
@@ -214,13 +235,73 @@ function App() {
   function resetDecisionForm() { setDecisionForm({ id: '', title: '', projectId: selectedProjectId, madeById: '', date: '' }) }
   function resetMeetingForm() { setMeetingForm({ id: '', title: '', projectId: selectedProjectId, date: '' }) }
   function resetRoleForm() { setRoleForm({ id: '', name: '', defaultRate: '', isStakeholder: false }) }
-  function resetTemplateForm() { setTemplateForm({ id: '', name: '', isActive: true }) }
+  function resetTemplateForm() { setTemplateForm({ id: '', name: '', description: '', isActive: true }) }
+  function resetInvoiceForm() { setInvoiceForm({ id: '', invoiceNumber: '', projectId: selectedProjectId, amount: '', dateIssued: '', dueDate: '', datePaid: '', notes: '' }) }
+  function resetAllocationForm() { setAllocationForm({ id: '', name: '', projectId: selectedProjectId, teamMemberId: '', weekStartDate: '', plannedHours: '', actualHours: '' }) }
+  function resetPhaseTemplateForm(templateId = '') { setPhaseTemplateForm({ id: '', name: '', order: '', defaultDurationDays: '', templateId }) }
+  function resetTaskTemplateForm(phaseTemplateId = '') { setTaskTemplateForm({ id: '', name: '', order: '', defaultEstimatedHours: '', defaultPriority: '100000001', phaseTemplateId }) }
 
   async function upsertProject() {
-    const payload: Partial<Vibe_projectsBase> = { vibe_name: projectForm.name, vibe_startdate: projectForm.startDate || undefined, vibe_enddate: projectForm.endDate || undefined, vibe_totalbudget: parseNumber(projectForm.totalBudget), 'vibe_templatesourceid@odata.bind': projectForm.templateId ? bind('vibe_projecttemplates', projectForm.templateId) : undefined }
-    if (projectForm.id) await execute(async () => { await Vibe_projectsService.update(projectForm.id, payload) }, 'Project updated.')
-    else await execute(async () => { await Vibe_projectsService.create(asCreatePayload<Omit<Vibe_projectsBase, 'vibe_projectid'>>(payload)) }, 'Project created.')
+    const payload: Partial<Vibe_projectsBase> = {
+      vibe_name: projectForm.name,
+      vibe_startdate: projectForm.startDate || undefined,
+      vibe_enddate: projectForm.endDate || undefined,
+      vibe_totalbudget: parseNumber(projectForm.totalBudget),
+      'vibe_templatesourceid@odata.bind': projectForm.templateId ? bind('vibe_projecttemplates', projectForm.templateId) : undefined,
+    }
+    if (projectForm.id) {
+      await execute(async () => { await Vibe_projectsService.update(projectForm.id, payload) }, 'Project updated.')
+    } else {
+      const chosenTemplateId = projectForm.templateId
+      const capturedPhaseTemplates = phaseTemplates
+      const capturedTaskTemplates = taskTemplates
+      await execute(async () => {
+        const result = await Vibe_projectsService.create(asCreatePayload<Omit<Vibe_projectsBase, 'vibe_projectid'>>(payload))
+        if (chosenTemplateId && result.data?.vibe_projectid) {
+          await expandTemplateToProject(chosenTemplateId, result.data.vibe_projectid, capturedPhaseTemplates, capturedTaskTemplates)
+        }
+      }, chosenTemplateId ? 'Project created with template tasks.' : 'Project created.')
+    }
     resetProjectForm()
+  }
+
+  async function expandTemplateToProject(
+    templateId: string,
+    projectId: string,
+    capturedPhaseTemplates: Vibe_phasetemplates[],
+    capturedTaskTemplates: Vibe_tasktemplates[],
+  ) {
+    const phaseTpls = capturedPhaseTemplates
+      .filter((pt) => pt._vibe_projecttemplateid_value === templateId)
+      .sort((a, b) => (a.vibe_order ?? 0) - (b.vibe_order ?? 0))
+
+    for (const pt of phaseTpls) {
+      const phasePayload: Partial<Vibe_projectphasesBase> = {
+        vibe_name: pt.vibe_name ?? 'Phase',
+        vibe_order: pt.vibe_order,
+        'vibe_projectid@odata.bind': bind('vibe_projects', projectId),
+      }
+      const phaseResult = await Vibe_projectphasesService.create(
+        asCreatePayload<Omit<Vibe_projectphasesBase, 'vibe_projectphaseid'>>(phasePayload),
+      )
+      const phaseId = phaseResult.data?.vibe_projectphaseid
+
+      const taskTpls = capturedTaskTemplates
+        .filter((tt) => tt._vibe_phasetemplateid_value === pt.vibe_phasetemplateid)
+        .sort((a, b) => (a.vibe_order ?? 0) - (b.vibe_order ?? 0))
+
+      for (const tt of taskTpls) {
+        const taskPayload: Partial<Vibe_tasksBase> = {
+          vibe_name: tt.vibe_name,
+          vibe_estimatedhours: tt.vibe_defaultestimatedhours,
+          vibe_priority: tt.vibe_defaultpriority as Vibe_tasksBase['vibe_priority'],
+          vibe_taskstatus: 100000000 as Vibe_tasksBase['vibe_taskstatus'],
+          'vibe_projectid@odata.bind': bind('vibe_projects', projectId),
+          ...(phaseId ? { 'vibe_phaseid@odata.bind': bind('vibe_projectphases', phaseId) } : {}),
+        }
+        await Vibe_tasksService.create(asCreatePayload<Omit<Vibe_tasksBase, 'vibe_taskid'>>(taskPayload))
+      }
+    }
   }
 
   async function deleteProject() {
@@ -230,7 +311,14 @@ function App() {
   }
 
   async function upsertTask() {
-    const payload: Partial<Vibe_tasksBase> = { vibe_name: taskForm.name, vibe_duedate: taskForm.dueDate || undefined, vibe_priority: Number(taskForm.priority) as Vibe_tasksBase['vibe_priority'], vibe_taskstatus: Number(taskForm.status) as Vibe_tasksBase['vibe_taskstatus'], 'vibe_projectid@odata.bind': taskForm.projectId ? bind('vibe_projects', taskForm.projectId) : undefined, 'vibe_assignedtoid@odata.bind': taskForm.assigneeId ? bind('vibe_projectteammembers', taskForm.assigneeId) : undefined }
+    const payload: Partial<Vibe_tasksBase> = {
+      vibe_name: taskForm.name,
+      vibe_duedate: taskForm.dueDate || undefined,
+      vibe_priority: Number(taskForm.priority) as Vibe_tasksBase['vibe_priority'],
+      vibe_taskstatus: Number(taskForm.status) as Vibe_tasksBase['vibe_taskstatus'],
+      'vibe_projectid@odata.bind': taskForm.projectId ? bind('vibe_projects', taskForm.projectId) : undefined,
+      'vibe_assignedtoid@odata.bind': taskForm.assigneeId ? bind('vibe_projectteammembers', taskForm.assigneeId) : undefined,
+    }
     if (taskForm.id) await execute(async () => { await Vibe_tasksService.update(taskForm.id, payload) }, 'Task updated.')
     else await execute(async () => { await Vibe_tasksService.create(asCreatePayload<Omit<Vibe_tasksBase, 'vibe_taskid'>>(payload)) }, 'Task created.')
     resetTaskForm()
@@ -243,7 +331,16 @@ function App() {
   }
 
   async function upsertTeam() {
-    const payload: Partial<Vibe_projectteammembersBase> = { vibe_name: teamForm.name, vibe_allocationpercentage: parseNumber(teamForm.allocation), vibe_hourlyrate: parseNumber(teamForm.hourlyRate), vibe_startdate: teamForm.startDate || undefined, vibe_enddate: teamForm.endDate || undefined, vibe_isactive: teamForm.isActive, 'vibe_projectid@odata.bind': teamForm.projectId ? bind('vibe_projects', teamForm.projectId) : undefined, 'vibe_roleid@odata.bind': teamForm.roleId ? bind('vibe_projectroles', teamForm.roleId) : undefined }
+    const payload: Partial<Vibe_projectteammembersBase> = {
+      vibe_name: teamForm.name,
+      vibe_allocationpercentage: parseNumber(teamForm.allocation),
+      vibe_hourlyrate: parseNumber(teamForm.hourlyRate),
+      vibe_startdate: teamForm.startDate || undefined,
+      vibe_enddate: teamForm.endDate || undefined,
+      vibe_isactive: teamForm.isActive,
+      'vibe_projectid@odata.bind': teamForm.projectId ? bind('vibe_projects', teamForm.projectId) : undefined,
+      'vibe_roleid@odata.bind': teamForm.roleId ? bind('vibe_projectroles', teamForm.roleId) : undefined,
+    }
     if (teamForm.id) await execute(async () => { await Vibe_projectteammembersService.update(teamForm.id, payload) }, 'Team member updated.')
     else await execute(async () => { await Vibe_projectteammembersService.create(asCreatePayload<Omit<Vibe_projectteammembersBase, 'vibe_projectteammemberid'>>(payload)) }, 'Team member created.')
     resetTeamForm()
@@ -256,7 +353,13 @@ function App() {
   }
 
   async function upsertBudget() {
-    const payload: Partial<Vibe_budgetlinesBase> = { vibe_name: budgetForm.name, vibe_estimatedamount: parseNumber(budgetForm.estimated), vibe_actualamount: parseNumber(budgetForm.actual), vibe_category: Number(budgetForm.category) as Vibe_budgetlinesBase['vibe_category'], 'vibe_projectid@odata.bind': budgetForm.projectId ? bind('vibe_projects', budgetForm.projectId) : undefined }
+    const payload: Partial<Vibe_budgetlinesBase> = {
+      vibe_name: budgetForm.name,
+      vibe_estimatedamount: parseNumber(budgetForm.estimated),
+      vibe_actualamount: parseNumber(budgetForm.actual),
+      vibe_category: Number(budgetForm.category) as Vibe_budgetlinesBase['vibe_category'],
+      'vibe_projectid@odata.bind': budgetForm.projectId ? bind('vibe_projects', budgetForm.projectId) : undefined,
+    }
     if (budgetForm.id) await execute(async () => { await Vibe_budgetlinesService.update(budgetForm.id, payload) }, 'Budget line updated.')
     else await execute(async () => { await Vibe_budgetlinesService.create(asCreatePayload<Omit<Vibe_budgetlinesBase, 'vibe_budgetlineid'>>(payload)) }, 'Budget line created.')
     resetBudgetForm()
@@ -268,8 +371,55 @@ function App() {
     resetBudgetForm()
   }
 
+  async function upsertInvoice() {
+    const payload: Partial<Vibe_invoicesBase> = {
+      vibe_invoicenumber: invoiceForm.invoiceNumber || undefined,
+      vibe_amount: parseNumber(invoiceForm.amount),
+      vibe_dateissued: invoiceForm.dateIssued || undefined,
+      vibe_duedate: invoiceForm.dueDate || undefined,
+      vibe_datepaid: invoiceForm.datePaid || undefined,
+      vibe_notes: invoiceForm.notes || undefined,
+      'vibe_projectid@odata.bind': invoiceForm.projectId ? bind('vibe_projects', invoiceForm.projectId) : undefined,
+    }
+    if (invoiceForm.id) await execute(async () => { await Vibe_invoicesService.update(invoiceForm.id, payload) }, 'Invoice updated.')
+    else await execute(async () => { await Vibe_invoicesService.create(asCreatePayload<Omit<Vibe_invoicesBase, 'vibe_invoiceid'>>(payload)) }, 'Invoice created.')
+    resetInvoiceForm()
+  }
+
+  async function deleteInvoice() {
+    if (!invoiceForm.id) return
+    await execute(async () => { await Vibe_invoicesService.delete(invoiceForm.id) }, 'Invoice deleted.')
+    resetInvoiceForm()
+  }
+
+  async function upsertAllocation() {
+    const payload: Partial<Vibe_resourceallocationsBase> = {
+      vibe_name: allocationForm.name || undefined,
+      vibe_weekstartdate: allocationForm.weekStartDate || undefined,
+      vibe_plannedhours: parseNumber(allocationForm.plannedHours),
+      vibe_actualhours: parseNumber(allocationForm.actualHours),
+      'vibe_projectid@odata.bind': allocationForm.projectId ? bind('vibe_projects', allocationForm.projectId) : undefined,
+      'vibe_projectteammemberid@odata.bind': allocationForm.teamMemberId ? bind('vibe_projectteammembers', allocationForm.teamMemberId) : undefined,
+    }
+    if (allocationForm.id) await execute(async () => { await Vibe_resourceallocationsService.update(allocationForm.id, payload) }, 'Allocation updated.')
+    else await execute(async () => { await Vibe_resourceallocationsService.create(asCreatePayload<Omit<Vibe_resourceallocationsBase, 'vibe_resourceallocationid'>>(payload)) }, 'Allocation created.')
+    resetAllocationForm()
+  }
+
+  async function deleteAllocation() {
+    if (!allocationForm.id) return
+    await execute(async () => { await Vibe_resourceallocationsService.delete(allocationForm.id) }, 'Allocation deleted.')
+    resetAllocationForm()
+  }
+
   async function upsertRisk() {
-    const payload: Partial<Vibe_risksBase> = { vibe_title: riskForm.title, vibe_probability: Number(riskForm.probability) as Vibe_risksBase['vibe_probability'], vibe_impact: Number(riskForm.impact) as Vibe_risksBase['vibe_impact'], vibe_riskstatus: Number(riskForm.status) as Vibe_risksBase['vibe_riskstatus'], 'vibe_projectid@odata.bind': riskForm.projectId ? bind('vibe_projects', riskForm.projectId) : undefined }
+    const payload: Partial<Vibe_risksBase> = {
+      vibe_title: riskForm.title,
+      vibe_probability: Number(riskForm.probability) as Vibe_risksBase['vibe_probability'],
+      vibe_impact: Number(riskForm.impact) as Vibe_risksBase['vibe_impact'],
+      vibe_riskstatus: Number(riskForm.status) as Vibe_risksBase['vibe_riskstatus'],
+      'vibe_projectid@odata.bind': riskForm.projectId ? bind('vibe_projects', riskForm.projectId) : undefined,
+    }
     if (riskForm.id) await execute(async () => { await Vibe_risksService.update(riskForm.id, payload) }, 'Risk updated.')
     else await execute(async () => { await Vibe_risksService.create(asCreatePayload<Omit<Vibe_risksBase, 'vibe_riskid'>>(payload)) }, 'Risk created.')
     resetRiskForm()
@@ -282,7 +432,12 @@ function App() {
   }
 
   async function upsertIssue() {
-    const payload: Partial<Vibe_issuesBase> = { vibe_title: issueForm.title, vibe_severity: Number(issueForm.severity) as Vibe_issuesBase['vibe_severity'], vibe_issuestatus: Number(issueForm.status) as Vibe_issuesBase['vibe_issuestatus'], 'vibe_projectid@odata.bind': issueForm.projectId ? bind('vibe_projects', issueForm.projectId) : undefined }
+    const payload: Partial<Vibe_issuesBase> = {
+      vibe_title: issueForm.title,
+      vibe_severity: Number(issueForm.severity) as Vibe_issuesBase['vibe_severity'],
+      vibe_issuestatus: Number(issueForm.status) as Vibe_issuesBase['vibe_issuestatus'],
+      'vibe_projectid@odata.bind': issueForm.projectId ? bind('vibe_projects', issueForm.projectId) : undefined,
+    }
     if (issueForm.id) await execute(async () => { await Vibe_issuesService.update(issueForm.id, payload) }, 'Issue updated.')
     else await execute(async () => { await Vibe_issuesService.create(asCreatePayload<Omit<Vibe_issuesBase, 'vibe_issueid'>>(payload)) }, 'Issue created.')
     resetIssueForm()
@@ -295,7 +450,14 @@ function App() {
   }
 
   async function upsertDeliverable() {
-    const payload: Partial<Vibe_deliverablesBase> = { vibe_name: deliverableForm.name, vibe_duedate: deliverableForm.dueDate || undefined, vibe_deliverablestatus: Number(deliverableForm.status) as Vibe_deliverablesBase['vibe_deliverablestatus'], vibe_documentlink: deliverableForm.documentLink || undefined, 'vibe_projectid@odata.bind': deliverableForm.projectId ? bind('vibe_projects', deliverableForm.projectId) : undefined, 'vibe_responsibleid@odata.bind': deliverableForm.responsibleId ? bind('vibe_projectteammembers', deliverableForm.responsibleId) : undefined }
+    const payload: Partial<Vibe_deliverablesBase> = {
+      vibe_name: deliverableForm.name,
+      vibe_duedate: deliverableForm.dueDate || undefined,
+      vibe_deliverablestatus: Number(deliverableForm.status) as Vibe_deliverablesBase['vibe_deliverablestatus'],
+      vibe_documentlink: deliverableForm.documentLink || undefined,
+      'vibe_projectid@odata.bind': deliverableForm.projectId ? bind('vibe_projects', deliverableForm.projectId) : undefined,
+      'vibe_responsibleid@odata.bind': deliverableForm.responsibleId ? bind('vibe_projectteammembers', deliverableForm.responsibleId) : undefined,
+    }
     if (deliverableForm.id) await execute(async () => { await Vibe_deliverablesService.update(deliverableForm.id, payload) }, 'Deliverable updated.')
     else await execute(async () => { await Vibe_deliverablesService.create(asCreatePayload<Omit<Vibe_deliverablesBase, 'vibe_deliverableid'>>(payload)) }, 'Deliverable created.')
     resetDeliverableForm()
@@ -308,7 +470,14 @@ function App() {
   }
 
   async function upsertTime() {
-    const payload: Partial<Vibe_timeentriesBase> = { vibe_name: timeForm.name, vibe_date: timeForm.date || undefined, vibe_hours: parseNumber(timeForm.hours), 'vibe_projectid@odata.bind': timeForm.projectId ? bind('vibe_projects', timeForm.projectId) : undefined, 'vibe_taskid@odata.bind': timeForm.taskId ? bind('vibe_tasks', timeForm.taskId) : undefined, 'vibe_teammemberid@odata.bind': timeForm.teamMemberId ? bind('vibe_projectteammembers', timeForm.teamMemberId) : undefined }
+    const payload: Partial<Vibe_timeentriesBase> = {
+      vibe_name: timeForm.name,
+      vibe_date: timeForm.date || undefined,
+      vibe_hours: parseNumber(timeForm.hours),
+      'vibe_projectid@odata.bind': timeForm.projectId ? bind('vibe_projects', timeForm.projectId) : undefined,
+      'vibe_taskid@odata.bind': timeForm.taskId ? bind('vibe_tasks', timeForm.taskId) : undefined,
+      'vibe_teammemberid@odata.bind': timeForm.teamMemberId ? bind('vibe_projectteammembers', timeForm.teamMemberId) : undefined,
+    }
     if (timeForm.id) await execute(async () => { await Vibe_timeentriesService.update(timeForm.id, payload) }, 'Time entry updated.')
     else await execute(async () => { await Vibe_timeentriesService.create(asCreatePayload<Omit<Vibe_timeentriesBase, 'vibe_timeentryid'>>(payload)) }, 'Time entry created.')
     resetTimeForm()
@@ -321,7 +490,12 @@ function App() {
   }
 
   async function upsertDecision() {
-    const payload: Partial<Vibe_decisionlogsBase> = { vibe_title: decisionForm.title, vibe_date: decisionForm.date || undefined, 'vibe_projectid@odata.bind': decisionForm.projectId ? bind('vibe_projects', decisionForm.projectId) : undefined, 'vibe_madebyid@odata.bind': decisionForm.madeById ? bind('vibe_projectteammembers', decisionForm.madeById) : undefined }
+    const payload: Partial<Vibe_decisionlogsBase> = {
+      vibe_title: decisionForm.title,
+      vibe_date: decisionForm.date || undefined,
+      'vibe_projectid@odata.bind': decisionForm.projectId ? bind('vibe_projects', decisionForm.projectId) : undefined,
+      'vibe_madebyid@odata.bind': decisionForm.madeById ? bind('vibe_projectteammembers', decisionForm.madeById) : undefined,
+    }
     if (decisionForm.id) await execute(async () => { await Vibe_decisionlogsService.update(decisionForm.id, payload) }, 'Decision updated.')
     else await execute(async () => { await Vibe_decisionlogsService.create(asCreatePayload<Omit<Vibe_decisionlogsBase, 'vibe_decisionlogid'>>(payload)) }, 'Decision created.')
     resetDecisionForm()
@@ -334,7 +508,11 @@ function App() {
   }
 
   async function upsertMeeting() {
-    const payload: Partial<Vibe_meetingnotesBase> = { vibe_title: meetingForm.title, vibe_date: meetingForm.date || undefined, 'vibe_projectid@odata.bind': meetingForm.projectId ? bind('vibe_projects', meetingForm.projectId) : undefined }
+    const payload: Partial<Vibe_meetingnotesBase> = {
+      vibe_title: meetingForm.title,
+      vibe_date: meetingForm.date || undefined,
+      'vibe_projectid@odata.bind': meetingForm.projectId ? bind('vibe_projects', meetingForm.projectId) : undefined,
+    }
     if (meetingForm.id) await execute(async () => { await Vibe_meetingnotesService.update(meetingForm.id, payload) }, 'Meeting note updated.')
     else await execute(async () => { await Vibe_meetingnotesService.create(asCreatePayload<Omit<Vibe_meetingnotesBase, 'vibe_meetingnoteid'>>(payload)) }, 'Meeting note created.')
     resetMeetingForm()
@@ -347,7 +525,11 @@ function App() {
   }
 
   async function upsertRole() {
-    const payload: Partial<Vibe_projectrolesBase> = { vibe_name: roleForm.name, vibe_defaulthourlyrate: parseNumber(roleForm.defaultRate), vibe_isstakeholderrole: roleForm.isStakeholder }
+    const payload: Partial<Vibe_projectrolesBase> = {
+      vibe_name: roleForm.name,
+      vibe_defaulthourlyrate: parseNumber(roleForm.defaultRate),
+      vibe_isstakeholderrole: roleForm.isStakeholder,
+    }
     if (roleForm.id) await execute(async () => { await Vibe_projectrolesService.update(roleForm.id, payload) }, 'Role updated.')
     else await execute(async () => { await Vibe_projectrolesService.create(asCreatePayload<Omit<Vibe_projectrolesBase, 'vibe_projectroleid'>>(payload)) }, 'Role created.')
     resetRoleForm()
@@ -360,7 +542,11 @@ function App() {
   }
 
   async function upsertTemplate() {
-    const payload: Partial<Vibe_projecttemplatesBase> = { vibe_name: templateForm.name, vibe_isactive: templateForm.isActive }
+    const payload: Partial<Vibe_projecttemplatesBase> = {
+      vibe_name: templateForm.name,
+      vibe_description: templateForm.description || undefined,
+      vibe_isactive: templateForm.isActive,
+    }
     if (templateForm.id) await execute(async () => { await Vibe_projecttemplatesService.update(templateForm.id, payload) }, 'Template updated.')
     else await execute(async () => { await Vibe_projecttemplatesService.create(asCreatePayload<Omit<Vibe_projecttemplatesBase, 'vibe_projecttemplateid'>>(payload)) }, 'Template created.')
     resetTemplateForm()
@@ -370,6 +556,45 @@ function App() {
     if (!templateForm.id) return
     await execute(async () => { await Vibe_projecttemplatesService.delete(templateForm.id) }, 'Template deleted.')
     resetTemplateForm()
+  }
+
+  async function upsertPhaseTemplate() {
+    const payload: Partial<Vibe_phasetemplatesBase> = {
+      vibe_name: phaseTemplateForm.name,
+      vibe_order: parseNumber(phaseTemplateForm.order),
+      vibe_defaultdurationdays: parseNumber(phaseTemplateForm.defaultDurationDays),
+      'vibe_projecttemplateid@odata.bind': phaseTemplateForm.templateId ? bind('vibe_projecttemplates', phaseTemplateForm.templateId) : undefined,
+    }
+    if (phaseTemplateForm.id) await execute(async () => { await Vibe_phasetemplatesService.update(phaseTemplateForm.id, payload) }, 'Phase template updated.')
+    else await execute(async () => { await Vibe_phasetemplatesService.create(asCreatePayload<Omit<Vibe_phasetemplatesBase, 'vibe_phasetemplateid'>>(payload)) }, 'Phase template created.')
+    resetPhaseTemplateForm(phaseTemplateForm.templateId)
+  }
+
+  async function deletePhaseTemplate() {
+    if (!phaseTemplateForm.id) return
+    const tid = phaseTemplateForm.templateId
+    await execute(async () => { await Vibe_phasetemplatesService.delete(phaseTemplateForm.id) }, 'Phase template deleted.')
+    resetPhaseTemplateForm(tid)
+  }
+
+  async function upsertTaskTemplate() {
+    const payload: Partial<Vibe_tasktemplatesBase> = {
+      vibe_name: taskTemplateForm.name,
+      vibe_order: parseNumber(taskTemplateForm.order),
+      vibe_defaultestimatedhours: parseNumber(taskTemplateForm.defaultEstimatedHours),
+      vibe_defaultpriority: Number(taskTemplateForm.defaultPriority) as Vibe_tasktemplatesBase['vibe_defaultpriority'],
+      'vibe_phasetemplateid@odata.bind': taskTemplateForm.phaseTemplateId ? bind('vibe_phasetemplates', taskTemplateForm.phaseTemplateId) : undefined,
+    }
+    if (taskTemplateForm.id) await execute(async () => { await Vibe_tasktemplatesService.update(taskTemplateForm.id, payload) }, 'Task template updated.')
+    else await execute(async () => { await Vibe_tasktemplatesService.create(asCreatePayload<Omit<Vibe_tasktemplatesBase, 'vibe_tasktemplateid'>>(payload)) }, 'Task template created.')
+    resetTaskTemplateForm(taskTemplateForm.phaseTemplateId)
+  }
+
+  async function deleteTaskTemplate() {
+    if (!taskTemplateForm.id) return
+    const pid = taskTemplateForm.phaseTemplateId
+    await execute(async () => { await Vibe_tasktemplatesService.delete(taskTemplateForm.id) }, 'Task template deleted.')
+    resetTaskTemplateForm(pid)
   }
 
   return (
@@ -426,7 +651,10 @@ function App() {
           })()}
 
           {notice && (
-            <div className={`f-notice f-notice-${notice.type}`}>{notice.message}</div>
+            <div className={`f-notice f-notice-${notice.type}`} onClick={() => setNotice(null)} style={{ cursor: 'pointer' }}>
+              {notice.message}
+              <span style={{ marginLeft: 8, opacity: 0.6, fontSize: 11 }}>✕</span>
+            </div>
           )}
 
           {activeTab === 'home' && (
@@ -448,6 +676,7 @@ function App() {
               overdueTasks={overdueTasks}
               openRisks={openRisks}
               budgetBurnPct={budgetBurnPct}
+              onNavigate={(tab) => setActiveTab(tab)}
             />
           )}
 
@@ -491,7 +720,17 @@ function App() {
           )}
 
           {activeTab === 'planning' && (
-            <PlanningView allocations={filteredAllocations} projectById={projectById} />
+            <PlanningView
+              allocations={filteredAllocations}
+              teamMembers={teamMembers}
+              projects={projects}
+              projectById={projectById}
+              allocationForm={allocationForm}
+              setAllocationForm={setAllocationForm}
+              upsertAllocation={upsertAllocation}
+              deleteAllocation={deleteAllocation}
+              resetAllocationForm={resetAllocationForm}
+            />
           )}
 
           {activeTab === 'budget' && (
@@ -505,6 +744,11 @@ function App() {
               upsertBudget={upsertBudget}
               deleteBudget={deleteBudget}
               resetBudgetForm={resetBudgetForm}
+              invoiceForm={invoiceForm}
+              setInvoiceForm={setInvoiceForm}
+              upsertInvoice={upsertInvoice}
+              deleteInvoice={deleteInvoice}
+              resetInvoiceForm={resetInvoiceForm}
             />
           )}
 
@@ -592,6 +836,8 @@ function App() {
             <SettingsView
               roles={roles}
               templates={templates}
+              phaseTemplates={phaseTemplates}
+              taskTemplates={taskTemplates}
               roleForm={roleForm}
               setRoleForm={setRoleForm}
               upsertRole={upsertRole}
@@ -602,6 +848,16 @@ function App() {
               upsertTemplate={upsertTemplate}
               deleteTemplate={deleteTemplate}
               resetTemplateForm={resetTemplateForm}
+              phaseTemplateForm={phaseTemplateForm}
+              setPhaseTemplateForm={setPhaseTemplateForm}
+              upsertPhaseTemplate={upsertPhaseTemplate}
+              deletePhaseTemplate={deletePhaseTemplate}
+              resetPhaseTemplateForm={resetPhaseTemplateForm}
+              taskTemplateForm={taskTemplateForm}
+              setTaskTemplateForm={setTaskTemplateForm}
+              upsertTaskTemplate={upsertTaskTemplate}
+              deleteTaskTemplate={deleteTaskTemplate}
+              resetTaskTemplateForm={resetTaskTemplateForm}
             />
           )}
         </main>

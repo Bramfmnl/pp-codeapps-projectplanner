@@ -78,6 +78,9 @@ export function TeamView({ teamMembers, projects, roles, projectById, teamForm, 
             </tr>
           </thead>
           <tbody>
+            {teamMembers.length === 0 && (
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--c-text-3)', padding: '20px' }}>No team members yet — click + New to add one</td></tr>
+            )}
             {teamMembers.map((m) => (
               <tr key={m.vibe_projectteammemberid} className="clickable" onClick={() => openEdit(m)}>
                 <td>{m.vibe_contactidname ?? m.vibe_useridname ?? m.vibe_name ?? '—'}</td>
@@ -94,17 +97,41 @@ export function TeamView({ teamMembers, projects, roles, projectById, teamForm, 
 
       <Modal open={modalOpen} onClose={closeModal} title={teamForm.id ? 'Edit Team Member' : 'New Team Member'}>
         <div className="modal-body">
-          <div className="f-field"><label className="f-label">Name</label><input className="f-input" value={teamForm.name} onChange={(e) => setTeamForm((p) => ({ ...p, name: e.target.value }))} /></div>
-          <div className="f-field"><label className="f-label">Project</label><select className="f-select" value={teamForm.projectId} onChange={(e) => setTeamForm((p) => ({ ...p, projectId: e.target.value }))}>{projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}</select></div>
-          <div className="f-field"><label className="f-label">Role</label><select className="f-select" value={teamForm.roleId} onChange={(e) => setTeamForm((p) => ({ ...p, roleId: e.target.value }))}>{roles.map((r) => <option key={r.vibe_projectroleid} value={r.vibe_projectroleid}>{r.vibe_name}</option>)}</select></div>
-          <div className="f-field"><label className="f-label">Allocation %</label><input className="f-input" value={teamForm.allocation} onChange={(e) => setTeamForm((p) => ({ ...p, allocation: e.target.value }))} /></div>
-          <div className="f-field"><label className="f-label">Hourly rate</label><input className="f-input" value={teamForm.hourlyRate} onChange={(e) => setTeamForm((p) => ({ ...p, hourlyRate: e.target.value }))} /></div>
+          <div className="f-field">
+            <label className="f-label">Name <span style={{ color: 'var(--c-red)', fontSize: 11 }}>*</span></label>
+            <input className="f-input" placeholder="Full name" value={teamForm.name} onChange={(e) => setTeamForm((p) => ({ ...p, name: e.target.value }))} />
+          </div>
+          <div className="f-field">
+            <label className="f-label">Project <span style={{ color: 'var(--c-red)', fontSize: 11 }}>*</span></label>
+            <select className="f-select" value={teamForm.projectId} onChange={(e) => setTeamForm((p) => ({ ...p, projectId: e.target.value }))}>
+              <option value="">— Select project —</option>
+              {projects.map((p) => <option key={p.vibe_projectid} value={p.vibe_projectid}>{p.vibe_name}</option>)}
+            </select>
+          </div>
+          <div className="f-field">
+            <label className="f-label">Role</label>
+            <select className="f-select" value={teamForm.roleId} onChange={(e) => setTeamForm((p) => ({ ...p, roleId: e.target.value }))}>
+              <option value="">— No role —</option>
+              {roles.map((r) => <option key={r.vibe_projectroleid} value={r.vibe_projectroleid}>{r.vibe_name}</option>)}
+            </select>
+          </div>
+          <div className="f-field"><label className="f-label">Allocation %</label><input className="f-input" type="number" min="0" max="100" value={teamForm.allocation} onChange={(e) => setTeamForm((p) => ({ ...p, allocation: e.target.value }))} /></div>
+          <div className="f-field"><label className="f-label">Hourly rate</label><input className="f-input" type="number" min="0" value={teamForm.hourlyRate} onChange={(e) => setTeamForm((p) => ({ ...p, hourlyRate: e.target.value }))} /></div>
           <div className="f-field"><label className="f-label">Start date</label><input className="f-input" type="date" value={teamForm.startDate} onChange={(e) => setTeamForm((p) => ({ ...p, startDate: e.target.value }))} /></div>
           <div className="f-field"><label className="f-label">End date</label><input className="f-input" type="date" value={teamForm.endDate} onChange={(e) => setTeamForm((p) => ({ ...p, endDate: e.target.value }))} /></div>
           <div className="f-field"><label className="f-label">Active</label><Toggle checked={teamForm.isActive} onChange={(v) => setTeamForm((p) => ({ ...p, isActive: v }))} /></div>
         </div>
         <div className="modal-footer">
-          <button className="f-btn f-btn-primary" onClick={handleSave}>{teamForm.id ? 'Update' : 'Create'} Member</button>
+          {(!teamForm.name || !teamForm.projectId) && (
+            <span style={{ fontSize: 12, color: 'var(--c-text-3)', alignSelf: 'center' }}>Name and project are required</span>
+          )}
+          <button
+            className="f-btn f-btn-primary"
+            disabled={!teamForm.name || !teamForm.projectId}
+            onClick={handleSave}
+          >
+            {teamForm.id ? 'Update' : 'Create'} Member
+          </button>
           <button className="f-btn" onClick={closeModal}>Cancel</button>
           {teamForm.id && <button className="f-btn f-btn-danger" style={{ marginLeft: 'auto' }} onClick={handleDelete}>Delete</button>}
         </div>
