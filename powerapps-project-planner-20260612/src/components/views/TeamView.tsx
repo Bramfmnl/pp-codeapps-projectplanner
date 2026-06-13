@@ -45,7 +45,7 @@ export function TeamView({ teamMembers, projects, roles, projectById, teamForm, 
   function openEdit(m: Vibe_projectteammembers) {
     setTeamForm({
       id: m.vibe_projectteammemberid,
-      name: m.vibe_name ?? '',
+      name: m.vibe_contactidname ?? m.vibe_useridname ?? m.vibe_name ?? '',
       projectId: m._vibe_projectid_value ?? '',
       roleId: m._vibe_roleid_value ?? '',
       allocation: `${m.vibe_allocationpercentage ?? ''}`,
@@ -80,7 +80,7 @@ export function TeamView({ teamMembers, projects, roles, projectById, teamForm, 
           <tbody>
             {teamMembers.map((m) => (
               <tr key={m.vibe_projectteammemberid} className="clickable" onClick={() => openEdit(m)}>
-                <td>{m.vibe_name}</td>
+                <td>{m.vibe_contactidname ?? m.vibe_useridname ?? m.vibe_name ?? '—'}</td>
                 <td>{m._vibe_projectid_value ? (projectById[m._vibe_projectid_value] ?? '—') : '—'}</td>
                 <td>{m.vibe_roleidname ?? '—'}</td>
                 <td className="mono">{m.vibe_allocationpercentage != null ? `${m.vibe_allocationpercentage}%` : '—'}</td>
